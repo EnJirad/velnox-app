@@ -11,6 +11,7 @@ import com.velnox.core.data.api.UploadPurpose
 import com.velnox.core.data.dto.SellerApplicationRequest
 import com.velnox.core.data.repository.SellerRepository
 import com.velnox.core.data.repository.UploadRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
