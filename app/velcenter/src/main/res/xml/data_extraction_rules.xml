@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Backup / device-transfer policy.
+
+  A VelCenter session can approve sellers and moderate the catalogue. Excluding the
+  encrypted session store means that credential cannot travel to a device the operator
+  never signed in on, which is the whole point of device-bound Keystore storage.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="velnox_secure_session.xml" />
+        <exclude domain="sharedpref" path="velnox_secure_session" />
+        <exclude domain="database" path="velnox-cache.db" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="velnox_secure_session.xml" />
+        <exclude domain="sharedpref" path="velnox_secure_session" />
+    </device-transfer>
+</data-extraction-rules>

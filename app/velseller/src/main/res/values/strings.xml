@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Velseller</string>
+
+    <string name="velseller_auth_title">Velseller</string>
+
+    <string name="velseller_tab_overview">ภาพรวม</string>
+    <string name="velseller_tab_products">สินค้า</string>
+    <string name="velseller_tab_orders">คำสั่งซื้อ</string>
+    <string name="velseller_tab_account">บัญชี</string>
+
+    <string name="velseller_overview_title">ภาพรวมร้านค้า</string>
+    <string name="velseller_products_title">สินค้าของฉัน</string>
+    <string name="velseller_orders_title">คำสั่งซื้อของร้าน</string>
+    <string name="velseller_account_title">บัญชีร้านค้า</string>
+
+    <!-- Overview -->
+    <string name="velseller_income_title">รายได้</string>
+    <string name="velseller_income_gross">ยอดขายรวม</string>
+    <string name="velseller_income_commission">ค่าคอมมิชชัน</string>
+    <string name="velseller_income_net">รายได้สุทธิ</string>
+    <string name="velseller_income_pending">รอโอน</string>
+    <string name="velseller_income_orders">จำนวนคำสั่งซื้อ</string>
+    <string name="velseller_income_units">จำนวนชิ้นที่ขายได้</string>
+    <string name="velseller_income_average">ยอดเฉลี่ยต่อคำสั่งซื้อ</string>
+    <string name="velseller_revenue_note">ตัวเลขทั้งหมดเป็นผลรวมจากเซิร์ฟเวอร์ ไม่ได้คำนวณบนเครื่อง</string>
+
+    <string name="velseller_goals_title">เป้าหมายการขาย</string>
+    <string name="velseller_goals_empty">ยังไม่มีเป้าหมาย</string>
+    <string name="velseller_goal_add">เพิ่มเป้าหมาย</string>
+    <string name="velseller_goal_new_title">เป้าหมายใหม่</string>
+    <string name="velseller_goal_title_label">ชื่อเป้าหมาย</string>
+    <string name="velseller_goal_metric_label">ตัวชี้วัด (เช่น revenue, orders)</string>
+    <string name="velseller_goal_target_label">เป้าหมาย (ตัวเลข)</string>
+    <string name="velseller_goal_period_label">ช่วงเวลา (เช่น 2026-09)</string>
+    <string name="velseller_goal_progress">ทำได้ %1$s จาก %2$s</string>
+    <string name="velseller_goal_delete">ลบเป้าหมาย</string>
+    <string name="velseller_goal_created">เพิ่มเป้าหมายแล้ว</string>
+    <string name="velseller_goal_deleted">ลบเป้าหมายแล้ว</string>
+    <string name="velseller_goal_create_failed">เพิ่มเป้าหมายไม่สำเร็จ</string>
+    <string name="velseller_goal_invalid_target">กรุณากรอกเป้าหมายเป็นตัวเลขที่มากกว่า 0</string>
+
+    <!-- Products -->
+    <string name="velseller_products_empty">ยังไม่มีสินค้าในร้าน</string>
+    <string name="velseller_products_empty_body">สร้างสินค้าบนเว็บ Velseller แล้วสินค้าจะแสดงที่นี่</string>
+    <string name="velseller_products_all">ทั้งหมด</string>
+    <string name="velseller_product_stock">คงเหลือ %1$d %2$s</string>
+    <string name="velseller_product_submit">ส่งตรวจสอบ</string>
+    <string name="velseller_product_resubmit">ส่งตรวจสอบอีกครั้ง</string>
+    <string name="velseller_product_edit_stock">ปรับสต็อก</string>
+    <string name="velseller_product_delete">ลบสินค้า</string>
+    <string name="velseller_product_delete_confirm_title">ลบสินค้านี้?</string>
+    <string name="velseller_product_delete_confirm_body">สินค้า %1$s จะถูกนำออกจากร้านอย่างถาวร</string>
+    <string name="velseller_product_submitted">ส่งสินค้าเข้าตรวจสอบแล้ว</string>
+    <string name="velseller_product_stock_updated">อัปเดตสต็อกแล้ว</string>
+    <string name="velseller_product_deleted">ลบสินค้าแล้ว</string>
+    <string name="velseller_product_rejection_reason">เหตุผลที่ไม่ผ่าน: %1$s</string>
+    <string name="velseller_stock_dialog_title">ปรับสต็อก</string>
+    <string name="velseller_stock_label">จำนวนคงเหลือ</string>
+    <string name="velseller_stock_invalid">กรุณากรอกจำนวนที่เป็นตัวเลขตั้งแต่ 0 ขึ้นไป</string>
+
+    <!-- Orders -->
+    <string name="velseller_orders_empty">ยังไม่มีคำสั่งซื้อ</string>
+    <string name="velseller_orders_empty_body">คำสั่งซื้อของลูกค้าจะปรากฏที่นี่</string>
+    <string name="velseller_order_customer">ลูกค้า %1$s</string>
+    <string name="velseller_order_action">เปลี่ยนสถานะเป็น %1$s</string>
+    <string name="velseller_order_tracking_label">เลขพัสดุ (ถ้ามี)</string>
+    <string name="velseller_order_carrier_label">ขนส่ง (ถ้ามี)</string>
+    <string name="velseller_order_reason_label">เหตุผล (จำเป็นเมื่อยกเลิก)</string>
+    <string name="velseller_order_updated">อัปเดตสถานะคำสั่งซื้อแล้ว</string>
+    <string name="velseller_order_transition_title">อัปเดตสถานะคำสั่งซื้อ</string>
+    <string name="velseller_order_transition_body">คำสั่งซื้อ %1$s จะเปลี่ยนเป็น %2$s</string>
+
+    <!-- Seller onboarding -->
+    <string name="velseller_status_title">สถานะร้านค้า</string>
+    <string name="velseller_status_none_title">สมัครเปิดร้านค้า</string>
+    <string name="velseller_status_none_body">ส่งใบสมัครเพื่อเริ่มขายบน Velnox เมื่อได้รับอนุมัติแล้วพื้นที่ร้านค้าจะเปิดให้ใช้งาน</string>
+    <string name="velseller_status_pending_body">ใบสมัครของคุณอยู่ระหว่างการตรวจสอบ</string>
+    <string name="velseller_status_under_review_body">ทีมงานกำลังตรวจสอบใบสมัครของคุณ</string>
+    <string name="velseller_status_needs_correction_body">กรุณาแก้ไขข้อมูลตามที่แจ้ง แล้วส่งใบสมัครอีกครั้ง</string>
+    <string name="velseller_status_rejected_body">ใบสมัครไม่ผ่านการอนุมัติ</string>
+    <string name="velseller_status_suspended_body">ร้านค้าของคุณถูกระงับ กรุณาติดต่อฝ่ายสนับสนุน</string>
+    <string name="velseller_status_reapply">ส่งใบสมัครอีกครั้ง</string>
+    <string name="velseller_status_reason">เหตุผลที่แจ้ง: %1$s</string>
+
+    <string name="velseller_apply_title">ใบสมัครเปิดร้านค้า</string>
+    <string name="velseller_apply_shop_name">ชื่อร้าน</string>
+    <string name="velseller_apply_first_name">ชื่อผู้สมัคร</string>
+    <string name="velseller_apply_last_name">นามสกุลผู้สมัคร</string>
+    <string name="velseller_apply_phone">เบอร์โทรศัพท์</string>
+    <string name="velseller_apply_description">รายละเอียดร้าน (ไม่บังคับ)</string>
+    <string name="velseller_apply_category">หมวดหมู่ร้าน (ไม่บังคับ)</string>
+    <string name="velseller_apply_id_number">เลขบัตรประชาชน (ไม่บังคับ)</string>
+    <string name="velseller_apply_documents">เอกสารยืนยันตัวตน</string>
+    <string name="velseller_apply_document_front">บัตรประชาชน (ด้านหน้า)</string>
+    <string name="velseller_apply_document_back">บัตรประชาชน (ด้านหลัง)</string>
+    <string name="velseller_apply_document_selfie">ภาพเซลฟี่คู่บัตร</string>
+    <string name="velseller_apply_document_pick">เลือกรูปภาพ</string>
+    <string name="velseller_apply_document_replace">เปลี่ยนรูป</string>
+    <string name="velseller_apply_document_uploading">กำลังอัปโหลด…</string>
+    <string name="velseller_apply_document_uploaded">อัปโหลดแล้ว</string>
+    <string name="velseller_apply_document_required">ต้องอัปโหลดเอกสารอย่างน้อย 1 รายการก่อนส่งใบสมัคร</string>
+    <string name="velseller_apply_image_unsupported">ไฟล์นี้ไม่ใช่รูปแบบภาพที่ระบบรองรับ (JPEG, PNG, WebP, AVIF)</string>
+    <string name="velseller_apply_image_too_large">รูปภาพต้องมีขนาดไม่เกิน 10 MB</string>
+    <string name="velseller_apply_submit">ส่งใบสมัคร</string>
+    <string name="velseller_apply_submitted">ส่งใบสมัครแล้ว รอการตรวจสอบ</string>
+    <string name="velseller_apply_privacy_note">เอกสารถูกส่งตรงไปยัง Cloudflare R2 ด้วย URL ที่เซ็นชื่อชั่วคราว ตัวแอปไม่เก็บไฟล์หรือรหัสใด ๆ ไว้ในเครื่อง</string>
+
+    <!-- Account -->
+    <string name="velseller_account_shop">ข้อมูลร้านค้า</string>
+    <string name="velseller_account_shop_name">ชื่อร้าน</string>
+    <string name="velseller_account_shop_phone">เบอร์โทรศัพท์ร้าน</string>
+    <string name="velseller_account_address">ที่อยู่ร้าน</string>
+    <string name="velseller_account_seller_status">สถานะผู้ขาย</string>
+    <string name="velseller_account_verification">การยืนยันตัวตน</string>
+    <string name="velseller_account_not_set">ยังไม่ได้ระบุ</string>
+    <string name="velseller_account_manage_on_web">แก้ไขข้อมูลร้าน โลโก้ และที่อยู่ได้บนเว็บ Velseller</string>
+    <string name="velseller_sign_out_title">ออกจากระบบ?</string>
+    <string name="velseller_sign_out_body">คุณจะต้องเข้าสู่ระบบด้วย Google อีกครั้ง และเซสชันบนเซิร์ฟเวอร์จะถูกยกเลิก</string>
+</resources>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VelShop</string>
+
+    <string name="velshop_tab_home">Home</string>
+    <string name="velshop_tab_categories">Categories</string>
+    <string name="velshop_tab_cart">Cart</string>
+    <string name="velshop_tab_orders">Orders</string>
+    <string name="velshop_tab_account">Account</string>
+
+    <string name="velshop_home_title">VelShop</string>
+    <string name="velshop_browse_title">All products</string>
+    <string name="velshop_product_title">Product</string>
+    <string name="velshop_cart_title">Your cart</string>
+    <string name="velshop_checkout_title">Checkout</string>
+    <string name="velshop_orders_title">My orders</string>
+    <string name="velshop_account_title">My account</string>
+
+    <string name="velshop_empty_products">No products are available right now</string>
+    <string name="velshop_empty_cart">Your cart is empty</string>
+    <string name="velshop_empty_cart_body">Pick the products you want, then come back to your cart.</string>
+    <string name="velshop_empty_orders">You have no orders yet</string>
+    <string name="velshop_empty_orders_body">Your orders will appear here once you place one.</string>
+    <string name="velshop_browse_action">Browse products</string>
+
+    <string name="velshop_search_placeholder">Search products</string>
+    <string name="velshop_verified_only">Verified shops only</string>
+    <string name="velshop_in_stock_only">In stock only</string>
+    <string name="velshop_sort_newest">Newest</string>
+    <string name="velshop_sort_price_asc">Price: low to high</string>
+    <string name="velshop_sort_price_desc">Price: high to low</string>
+    <string name="velshop_sort_popular">Best selling</string>
+    <string name="velshop_sold_count">%1$d sold</string>
+
+    <!-- Product detail -->
+    <string name="velshop_description">Description</string>
+    <string name="velshop_discount_percent">%1$d%% off</string>
+    <string name="velshop_stock_remaining">%1$d left</string>
+    <string name="velshop_select_variant">Variant</string>
+    <string name="velshop_option_required_label">%1$s (required)</string>
+    <string name="velshop_quantity">Quantity</string>
+    <string name="velshop_add_out_of_stock">This product is out of stock</string>
+    <string name="velshop_add_variant_required">Choose a variant before adding this to your cart</string>
+    <string name="velshop_add_option_required">Choose %1$s before adding this to your cart</string>
+
+    <!-- Cart -->
+    <string name="velshop_cart_item_removed">Removed from cart</string>
+    <string name="velshop_cart_decrease">Decrease quantity</string>
+    <string name="velshop_cart_increase">Increase quantity</string>
+    <string name="velshop_cart_remove">Remove from cart</string>
+    <string name="velshop_cart_out_of_stock_block">An item in your cart is out of stock. Remove it before ordering.</string>
+
+    <!-- Checkout -->
+    <string name="velshop_subtotal">Subtotal</string>
+    <string name="velshop_shipping_fee">Shipping</string>
+    <string name="velshop_shipping_calculated_at_delivery">Calculated on delivery</string>
+    <string name="velshop_total">Total</string>
+    <string name="velshop_select_address">Delivery address</string>
+    <string name="velshop_no_address">You have no delivery address yet. Add one on the VelShop website before checking out.</string>
+    <string name="velshop_checkout_action">Proceed to checkout</string>
+    <string name="velshop_checkout_payment_section">Payment method</string>
+    <string name="velshop_checkout_note_label">Note to the shop (optional)</string>
+    <string name="velshop_checkout_summary">Order summary</string>
+    <string name="velshop_checkout_confirm">Place order</string>
+    <string name="velshop_payment_cod">Cash on delivery</string>
+    <string name="velshop_payment_card">Card (Stripe)</string>
+
+    <!-- Orders -->
+    <string name="velshop_checkout_success">Order placed</string>
+    <string name="velshop_added_to_cart">Added to cart</string>
+    <string name="velshop_add_failed">Could not add to cart</string>
+    <string name="velshop_cached_notice">Showing data saved on this device</string>
+    <string name="velshop_order_number">Order %1$s</string>
+    <string name="velshop_order_items">%1$d items</string>
+    <string name="velshop_order_more_items">and %1$d more</string>
+    <string name="velshop_order_reorder">Buy again</string>
+    <string name="velshop_order_cancel">Cancel order</string>
+    <string name="velshop_order_cancelled_notice">Order cancelled</string>
+    <string name="velshop_order_cancel_confirm_title">Cancel this order?</string>
+    <string name="velshop_order_cancel_confirm_body">Order %1$s will be cancelled. This cannot be undone.</string>
+    <string name="velshop_tracking">Tracking %1$s</string>
+
+    <!-- Account -->
+    <string name="velshop_account_profile">Profile</string>
+    <string name="velshop_account_summary">My details</string>
+    <string name="velshop_account_addresses">Delivery addresses</string>
+    <string name="velshop_account_wishlist">Wishlist items</string>
+    <string name="velshop_account_manage_on_web">Profile details and addresses are edited on the VelShop website.</string>
+    <string name="velshop_account_session_note">Signing out revokes this session on this device and on the server.</string>
+    <string name="velshop_account_sign_out_title">Sign out?</string>
+    <string name="velshop_account_sign_out_body">You will need to sign in with Google again.</string>
+    <string name="velshop_account_name">Name</string>
+    <string name="velshop_account_phone">Phone</string>
+    <string name="velshop_account_language">Preferred language</string>
+    <string name="velshop_account_not_set">Not set</string>
+
+    <string name="velshop_sign_out">Sign out</string>
+</resources>

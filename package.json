@@ -1,0 +1,15 @@
+{
+  "name": "velnox-mobile",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Native Android clients (VelShop, Velseller, VelCenter) for the Velnox marketplace.",
+  "//": "This is a Kotlin/Gradle project. This manifest exists only for the repository-level build-configuration check in tools/ (and so the workspace's `tsc -b --noEmit` has a resolvable TypeScript toolchain). It is not part of any Android build.",
+  "scripts": {
+    "verify:android-config": "bun tools/verify-android-config.ts",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.4",
+    "typescript": "^5.6.3"
+  }
+}

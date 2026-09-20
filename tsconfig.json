@@ -1,0 +1,13 @@
+{
+  "//": "This repository is a Kotlin/Gradle Android project. It contains no application TypeScript, but the workspace's `tsc -b --noEmit` check runs against the repository root, so this project is kept deliberately tiny and valid rather than absent. The only file it compiles is a build-config validator in tools/, which is genuinely useful here: it asserts that the three application ids stay unique and that the Gradle version catalog parses.",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": ["node"]
+  },
+  "include": ["tools/**/*.ts"]
+}

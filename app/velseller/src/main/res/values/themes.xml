@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The Android XML theme covers only the window before Compose draws — splash background
+  and system bar colours. All product styling lives in the shared Compose theme
+  (core:ui/theme), so this file must not grow into a second design system.
+-->
+<resources>
+
+    <style name="Theme.Velnox" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/velnox_background</item>
+        <item name="android:statusBarColor">@color/velnox_surface</item>
+        <item name="android:navigationBarColor">@color/velnox_surface</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+
+    <!--
+      Swapped for Theme.Velnox by `installSplashScreen()` once the session and the
+      seller status have been resolved, so the splash stays up instead of flashing a
+      sign-in screen or an application form at an approved seller.
+    -->
+    <style name="Theme.Velnox.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/velnox_surface</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_velseller</item>
+        <item name="postSplashScreenTheme">@style/Theme.Velnox</item>
+    </style>
+
+</resources>

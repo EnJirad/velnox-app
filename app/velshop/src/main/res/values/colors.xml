@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Values transcribed from core/ui/theme/Color.kt so the window and the first
+         composed frame are the same shade. -->
+    <color name="velnox_background">#F8FAFC</color>
+    <color name="velnox_surface">#FFFFFF</color>
+    <color name="velnox_emerald">#10B981</color>
+    <color name="velnox_primary">#0F172A</color>
+</resources>

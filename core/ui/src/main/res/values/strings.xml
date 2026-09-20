@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Default locale = Thai, matching the Velnox web clients (docs/I18N.md: "default: Thai").
+  English lives in values-en/. Burmese (my) is a documented follow-up: the backend
+  already serves my localised error messages, but the Android UI strings are not
+  translated yet, and a half-translated screen is worse than an English one.
+-->
+<resources>
+
+    <!-- Shared state views -->
+    <string name="velnox_state_loading">กำลังโหลด…</string>
+    <string name="velnox_state_retry">ลองใหม่</string>
+    <string name="velnox_state_error_title">เกิดข้อผิดพลาด</string>
+    <string name="velnox_state_error_body">ไม่สามารถโหลดข้อมูลได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง</string>
+    <string name="velnox_state_offline_title">ไม่มีการเชื่อมต่ออินเทอร์เน็ต</string>
+    <string name="velnox_state_offline_body">ตรวจสอบการเชื่อมต่อของคุณแล้วลองใหม่อีกครั้ง</string>
+    <string name="velnox_state_empty_title">ยังไม่มีข้อมูล</string>
+    <string name="velnox_state_forbidden_title">ไม่มีสิทธิ์เข้าถึง</string>
+    <string name="velnox_state_forbidden_body">บัญชีนี้ไม่ได้รับอนุญาตให้เข้าถึงส่วนนี้</string>
+    <string name="velnox_state_not_found_title">ไม่พบข้อมูล</string>
+    <string name="velnox_state_cached_notice">ข้อมูลที่บันทึกไว้ในเครื่อง</string>
+
+    <!-- Actions -->
+    <string name="velnox_action_add_to_cart">เพิ่มลงตะกร้า</string>
+    <string name="velnox_action_buy_now">ซื้อเลย</string>
+    <string name="velnox_action_confirm">ยืนยัน</string>
+    <string name="velnox_action_cancel">ยกเลิก</string>
+    <string name="velnox_action_save">บันทึก</string>
+    <string name="velnox_action_close">ปิด</string>
+    <string name="velnox_action_back">ย้อนกลับ</string>
+    <string name="velnox_action_search">ค้นหา</string>
+    <string name="velnox_action_sign_out">ออกจากระบบ</string>
+    <string name="velnox_action_refresh">รีเฟรช</string>
+    <string name="velnox_action_load_more">โหลดเพิ่มเติม</string>
+
+    <!-- Auth -->
+    <string name="velnox_auth_sign_in_google">เข้าสู่ระบบด้วย Google</string>
+    <string name="velnox_auth_sign_in_title">เข้าสู่ระบบ Velnox</string>
+    <string name="velnox_auth_sign_in_subtitle">ใช้บัญชี Google ของคุณเพื่อเริ่มต้นใช้งาน</string>
+    <string name="velnox_auth_not_configured">บิลด์นี้ยังไม่ได้ตั้งค่า Google Client ID จึงยังเข้าสู่ระบบไม่ได้</string>
+    <string name="velnox_auth_cancelled">ยกเลิกการเข้าสู่ระบบแล้ว</string>
+    <string name="velnox_auth_no_account">ไม่พบบัญชี Google ในอุปกรณ์นี้</string>
+    <string name="velnox_auth_session_unverified_title">ยังตรวจสอบเซสชันไม่ได้</string>
+    <string name="velnox_auth_session_unverified_body">เราเก็บเซสชันของคุณไว้แล้ว แต่ยังติดต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่</string>
+    <string name="velnox_auth_signed_out_elsewhere">เซสชันสิ้นสุดแล้ว กรุณาเข้าสู่ระบบอีกครั้ง</string>
+
+    <!-- Order statuses (mirrors ORDER_STATUS_META on web) -->
+    <string name="velnox_order_pending">รอตรวจสอบ</string>
+    <string name="velnox_order_confirmed">ยืนยันแล้ว</string>
+    <string name="velnox_order_shipped">กำลังจัดส่ง</string>
+    <string name="velnox_order_delivered">จัดส่งแล้ว</string>
+    <string name="velnox_order_completed">เสร็จสิ้น</string>
+    <string name="velnox_order_cancelled">ยกเลิก</string>
+    <string name="velnox_order_unknown">ไม่ทราบสถานะ</string>
+
+    <!-- Order presentation shared by Velshop, Velseller and VelCenter -->
+    <string name="velnox_order_number">คำสั่งซื้อ %1$s</string>
+    <string name="velnox_order_items">%1$d รายการ</string>
+    <string name="velnox_order_items_label">จำนวนสินค้า</string>
+    <string name="velnox_order_tracking">เลขพัสดุ %1$s</string>
+
+    <!-- Payment statuses -->
+    <string name="velnox_payment_unpaid">ยังไม่ชำระ</string>
+    <string name="velnox_payment_pending">รอชำระ</string>
+    <string name="velnox_payment_paid">ชำระแล้ว</string>
+    <string name="velnox_payment_partially_refunded">คืนเงินบางส่วน</string>
+    <string name="velnox_payment_refunded">คืนเงินแล้ว</string>
+    <string name="velnox_payment_failed">ชำระไม่สำเร็จ</string>
+    <string name="velnox_payment_unknown">ไม่ทราบสถานะการชำระ</string>
+
+    <!-- Product lifecycle -->
+    <string name="velnox_product_draft">ฉบับร่าง</string>
+    <string name="velnox_product_pending_review">รอตรวจสอบ</string>
+    <string name="velnox_product_published">เผยแพร่แล้ว</string>
+    <string name="velnox_product_rejected">ไม่ผ่านการตรวจสอบ</string>
+    <string name="velnox_product_suspended">ถูกระงับ</string>
+    <string name="velnox_product_archived">เก็บถาวร</string>
+    <string name="velnox_product_unknown">ไม่ทราบสถานะสินค้า</string>
+
+    <!-- Seller application lifecycle -->
+    <string name="velnox_seller_pending">รอตรวจสอบใบสมัคร</string>
+    <string name="velnox_seller_under_review">อยู่ระหว่างตรวจสอบ</string>
+    <string name="velnox_seller_needs_correction">ต้องแก้ไขข้อมูล</string>
+    <string name="velnox_seller_approved">อนุมัติแล้ว</string>
+    <string name="velnox_seller_rejected">ไม่ผ่านการอนุมัติ</string>
+    <string name="velnox_seller_suspended">ถูกระงับ</string>
+    <string name="velnox_seller_unknown">ไม่ทราบสถานะร้านค้า</string>
+
+    <!-- Verification -->
+    <string name="velnox_verified">ยืนยันแล้ว</string>
+    <string name="velnox_verification_pending">รอการยืนยัน</string>
+    <string name="velnox_verification_rejected">การยืนยันไม่ผ่าน</string>
+    <string name="velnox_verification_suspended">การยืนยันถูกระงับ</string>
+    <string name="velnox_not_verified">ยังไม่ยืนยัน</string>
+
+    <string name="velnox_out_of_stock">สินค้าหมด</string>
+    <string name="velnox_low_stock">เหลือ %1$d ชิ้น</string>
+
+    <!-- Account roles (users.role) -->
+    <string name="velnox_role_customer">ผู้ซื้อ</string>
+    <string name="velnox_role_seller">ผู้ขาย</string>
+    <string name="velnox_role_admin">ผู้ดูแลระบบ</string>
+    <string name="velnox_role_owner">เจ้าของแพลตฟอร์ม</string>
+    <string name="velnox_role_staff">พนักงาน</string>
+    <string name="velnox_role_unknown">ไม่ทราบบทบาท</string>
+
+    <!-- Media -->
+    <string name="velnox_image_failed">โหลดรูปภาพไม่สำเร็จ</string>
+    <string name="velnox_avatar_of">รูปโปรไฟล์ของ %1$s</string>
+
+</resources>

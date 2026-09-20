@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VelCenter</string>
+
+    <string name="velcenter_auth_title">VelCenter</string>
+
+    <string name="velcenter_tab_dashboard">Overview</string>
+    <string name="velcenter_tab_sellers">Sellers</string>
+    <string name="velcenter_tab_moderation">Moderation</string>
+    <string name="velcenter_tab_orders">Orders</string>
+    <string name="velcenter_tab_account">Account</string>
+
+    <string name="velcenter_dashboard_title">Platform overview</string>
+    <string name="velcenter_sellers_title">Seller approvals</string>
+    <string name="velcenter_moderation_title">Product moderation</string>
+    <string name="velcenter_orders_title">All orders</string>
+    <string name="velcenter_account_title">Staff account</string>
+
+    <!-- Dashboard -->
+    <string name="velcenter_dashboard_pending_sellers">Sellers awaiting approval</string>
+    <string name="velcenter_dashboard_pending_products">Products in review</string>
+    <string name="velcenter_dashboard_open_verifications">Open verifications</string>
+    <string name="velcenter_dashboard_total_users">Total users</string>
+    <string name="velcenter_dashboard_total_sellers">Total sellers</string>
+    <string name="velcenter_dashboard_total_products">Total products</string>
+    <string name="velcenter_dashboard_total_orders">Total orders</string>
+    <string name="velcenter_dashboard_gmv">Gross merchandise value</string>
+    <string name="velcenter_dashboard_unavailable">Unavailable</string>
+    <string name="velcenter_dashboard_no_metrics">The server returned no summary figures right now.</string>
+    <string name="velcenter_dashboard_note">Every figure is calculated by the server, never counted on this device.</string>
+
+    <!-- Sellers -->
+    <string name="velcenter_sellers_search">Search shop name, email or phone</string>
+    <string name="velcenter_sellers_empty">No sellers in this group</string>
+    <string name="velcenter_sellers_all">All</string>
+    <string name="velcenter_seller_shop">Shop %1$s</string>
+    <string name="velcenter_seller_products">%1$d products</string>
+    <string name="velcenter_seller_approve">Approve</string>
+    <string name="velcenter_seller_reject">Reject</string>
+    <string name="velcenter_seller_suspend">Suspend</string>
+    <string name="velcenter_seller_needs_correction">Request corrections</string>
+    <string name="velcenter_seller_decision_title">Confirm decision</string>
+    <string name="velcenter_seller_decision_body">%1$s will be set to %2$s.</string>
+    <string name="velcenter_seller_reason_label">Reason (required for this decision)</string>
+    <string name="velcenter_seller_reason_required">A reason is required before confirming</string>
+    <string name="velcenter_seller_updated">Seller status updated</string>
+
+    <!-- Moderation -->
+    <string name="velcenter_moderation_all">All</string>
+    <string name="velcenter_moderation_empty">Nothing in this queue</string>
+    <string name="velcenter_moderation_approve">Approve and publish</string>
+    <string name="velcenter_moderation_reject">Reject</string>
+    <string name="velcenter_moderation_submitted">Submitted %1$s</string>
+    <string name="velcenter_moderation_reason_label">Rejection reason (required)</string>
+    <string name="velcenter_moderation_updated">Product status updated</string>
+
+    <!-- Orders -->
+    <string name="velcenter_orders_empty">No orders in the system yet</string>
+    <string name="velcenter_order_customer">Customer</string>
+    <string name="velcenter_order_action">Mark as %1$s</string>
+    <string name="velcenter_order_updated">Order status updated</string>
+    <string name="velcenter_order_transition_title">Update order status</string>
+    <string name="velcenter_order_transition_body">Order %1$s will move to %2$s.</string>
+    <string name="velcenter_order_reason_label">Reason (required to cancel)</string>
+
+    <!-- Account -->
+    <string name="velcenter_account_role">Role</string>
+    <string name="velcenter_account_department">Department</string>
+    <string name="velcenter_account_permissions">Permissions granted</string>
+    <string name="velcenter_account_note">Every request is re-checked on the server. Hiding a control in the app is not a security boundary.</string>
+    <string name="velcenter_account_not_set">Not set</string>
+    <string name="velcenter_sign_out_title">Sign out?</string>
+    <string name="velcenter_sign_out_body">This staff session will be revoked on this device and on the server.</string>
+</resources>

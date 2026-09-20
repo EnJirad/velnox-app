@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security policy, identical to the other two apps.
+
+  `cleartextTrafficPermitted="false"` means a misconfigured base URL fails loudly
+  instead of sending a session token over plaintext. Certificate pinning is left
+  commented out rather than shipped enabled: pinning a certificate the operator has
+  not committed to rotating would brick every installed app the day it changes.
+-->
+<network-security-config>
+
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!--
+    <domain-config>
+        <domain includeSubdomains="true">velnox-api.onrender.com</domain>
+        <pin-set expiration="2027-12-31">
+            <pin digest="SHA-256">REPLACE_WITH_BACKUP_PIN</pin>
+            <pin digest="SHA-256">REPLACE_WITH_PRIMARY_PIN</pin>
+        </pin-set>
+    </domain-config>
+    -->
+
+</network-security-config>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VelShop</string>
+
+    <string name="velshop_tab_home">หน้าแรก</string>
+    <string name="velshop_tab_categories">หมวดหมู่</string>
+    <string name="velshop_tab_cart">ตะกร้า</string>
+    <string name="velshop_tab_orders">คำสั่งซื้อ</string>
+    <string name="velshop_tab_account">บัญชี</string>
+
+    <string name="velshop_home_title">VelShop</string>
+    <string name="velshop_browse_title">สินค้าทั้งหมด</string>
+    <string name="velshop_product_title">รายละเอียดสินค้า</string>
+    <string name="velshop_cart_title">ตะกร้าสินค้า</string>
+    <string name="velshop_checkout_title">ชำระเงิน</string>
+    <string name="velshop_orders_title">คำสั่งซื้อของฉัน</string>
+    <string name="velshop_account_title">บัญชีของฉัน</string>
+
+    <string name="velshop_empty_products">ยังไม่มีสินค้าในขณะนี้</string>
+    <string name="velshop_empty_cart">ตะกร้าของคุณว่างเปล่า</string>
+    <string name="velshop_empty_cart_body">เลือกสินค้าที่คุณต้องการ แล้วกลับมาที่ตะกร้าอีกครั้ง</string>
+    <string name="velshop_empty_orders">คุณยังไม่มีคำสั่งซื้อ</string>
+    <string name="velshop_empty_orders_body">เมื่อคุณสั่งซื้อสินค้า คำสั่งซื้อจะแสดงที่นี่</string>
+    <string name="velshop_browse_action">เลือกซื้อสินค้า</string>
+
+    <string name="velshop_search_placeholder">ค้นหาสินค้า</string>
+    <string name="velshop_verified_only">เฉพาะร้านที่ยืนยันแล้ว</string>
+    <string name="velshop_in_stock_only">เฉพาะที่มีสินค้า</string>
+    <string name="velshop_sort_newest">ใหม่ล่าสุด</string>
+    <string name="velshop_sort_price_asc">ราคาต่ำ → สูง</string>
+    <string name="velshop_sort_price_desc">ราคาสูง → ต่ำ</string>
+    <string name="velshop_sort_popular">ขายดี</string>
+    <string name="velshop_sold_count">ขายแล้ว %1$d ชิ้น</string>
+
+    <!-- Product detail -->
+    <string name="velshop_description">รายละเอียดสินค้า</string>
+    <string name="velshop_discount_percent">ลด %1$d%%</string>
+    <string name="velshop_stock_remaining">เหลือ %1$d ชิ้น</string>
+    <string name="velshop_select_variant">เลือกแบบสินค้า</string>
+    <string name="velshop_option_required_label">%1$s (จำเป็น)</string>
+    <string name="velshop_quantity">จำนวน</string>
+    <string name="velshop_add_out_of_stock">สินค้าหมดสต็อก</string>
+    <string name="velshop_add_variant_required">กรุณาเลือกแบบสินค้าก่อนเพิ่มลงตะกร้า</string>
+    <string name="velshop_add_option_required">กรุณาเลือก %1$s ก่อนเพิ่มลงตะกร้า</string>
+
+    <!-- Cart -->
+    <string name="velshop_cart_item_removed">นำสินค้าออกจากตะกร้าแล้ว</string>
+    <string name="velshop_cart_decrease">ลดจำนวน</string>
+    <string name="velshop_cart_increase">เพิ่มจำนวน</string>
+    <string name="velshop_cart_remove">ลบออกจากตะกร้า</string>
+    <string name="velshop_cart_out_of_stock_block">มีสินค้าที่หมดสต็อกอยู่ในตะกร้า กรุณานำออกก่อนสั่งซื้อ</string>
+
+    <!-- Checkout -->
+    <string name="velshop_subtotal">ยอดรวมสินค้า</string>
+    <string name="velshop_shipping_fee">ค่าจัดส่ง</string>
+    <string name="velshop_shipping_calculated_at_delivery">คำนวณเมื่อจัดส่ง</string>
+    <string name="velshop_total">ยอดรวมทั้งหมด</string>
+    <string name="velshop_select_address">เลือกที่อยู่จัดส่ง</string>
+    <string name="velshop_no_address">ยังไม่มีที่อยู่จัดส่ง กรุณาเพิ่มที่อยู่บนเว็บ VelShop ก่อนชำระเงิน</string>
+    <string name="velshop_checkout_action">ดำเนินการสั่งซื้อ</string>
+    <string name="velshop_checkout_payment_section">วิธีชำระเงิน</string>
+    <string name="velshop_checkout_note_label">หมายเหตุถึงร้านค้า (ไม่บังคับ)</string>
+    <string name="velshop_checkout_summary">สรุปคำสั่งซื้อ</string>
+    <string name="velshop_checkout_confirm">ยืนยันคำสั่งซื้อ</string>
+    <string name="velshop_payment_cod">เก็บเงินปลายทาง</string>
+    <string name="velshop_payment_card">บัตรเครดิต (Stripe)</string>
+
+    <!-- Orders -->
+    <string name="velshop_checkout_success">สั่งซื้อสำเร็จแล้ว</string>
+    <string name="velshop_added_to_cart">เพิ่มลงตะกร้าแล้ว</string>
+    <string name="velshop_add_failed">เพิ่มลงตะกร้าไม่สำเร็จ</string>
+    <string name="velshop_cached_notice">แสดงข้อมูลที่บันทึกไว้ในเครื่อง</string>
+    <string name="velshop_order_number">หมายเลขคำสั่งซื้อ %1$s</string>
+    <string name="velshop_order_items">%1$d รายการ</string>
+    <string name="velshop_order_more_items">และอีก %1$d รายการ</string>
+    <string name="velshop_order_reorder">ซื้ออีกครั้ง</string>
+    <string name="velshop_order_cancel">ยกเลิกคำสั่งซื้อ</string>
+    <string name="velshop_order_cancelled_notice">ยกเลิกคำสั่งซื้อแล้ว</string>
+    <string name="velshop_order_cancel_confirm_title">ยกเลิกคำสั่งซื้อนี้?</string>
+    <string name="velshop_order_cancel_confirm_body">คำสั่งซื้อ %1$s จะถูกยกเลิก และไม่สามารถย้อนกลับได้</string>
+    <string name="velshop_tracking">เลขพัสดุ %1$s</string>
+
+    <!-- Account -->
+    <string name="velshop_account_profile">ข้อมูลส่วนตัว</string>
+    <string name="velshop_account_summary">ข้อมูลของฉัน</string>
+    <string name="velshop_account_addresses">ที่อยู่จัดส่ง</string>
+    <string name="velshop_account_wishlist">รายการที่ถูกใจ</string>
+    <string name="velshop_account_manage_on_web">การแก้ไขข้อมูลส่วนตัวและที่อยู่ทำได้บนเว็บ VelShop</string>
+    <string name="velshop_account_session_note">การออกจากระบบจะยกเลิกเซสชันบนอุปกรณ์นี้และบนเซิร์ฟเวอร์</string>
+    <string name="velshop_account_sign_out_title">ออกจากระบบ?</string>
+    <string name="velshop_account_sign_out_body">คุณจะต้องเข้าสู่ระบบด้วย Google อีกครั้ง</string>
+    <string name="velshop_account_name">ชื่อ</string>
+    <string name="velshop_account_phone">เบอร์โทรศัพท์</string>
+    <string name="velshop_account_language">ภาษาที่ต้องการ</string>
+    <string name="velshop_account_not_set">ยังไม่ได้ระบุ</string>
+
+    <string name="velshop_sign_out">ออกจากระบบ</string>
+</resources>

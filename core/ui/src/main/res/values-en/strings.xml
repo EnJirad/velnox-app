@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  English fallback. Kept at exact parity with values/strings.xml so no key can ever
+  render unresolved (docs/ai/DESIGN.md: "never render raw keys").
+-->
+<resources>
+
+    <!-- Shared state views -->
+    <string name="velnox_state_loading">Loading…</string>
+    <string name="velnox_state_retry">Try again</string>
+    <string name="velnox_state_error_title">Something went wrong</string>
+    <string name="velnox_state_error_body">We could not load this right now. Please try again.</string>
+    <string name="velnox_state_offline_title">No internet connection</string>
+    <string name="velnox_state_offline_body">Check your connection and try again.</string>
+    <string name="velnox_state_empty_title">Nothing here yet</string>
+    <string name="velnox_state_forbidden_title">Access denied</string>
+    <string name="velnox_state_forbidden_body">This account is not allowed to access this area.</string>
+    <string name="velnox_state_not_found_title">Not found</string>
+    <string name="velnox_state_cached_notice">Saved on this device</string>
+
+    <!-- Actions -->
+    <string name="velnox_action_add_to_cart">Add to cart</string>
+    <string name="velnox_action_buy_now">Buy now</string>
+    <string name="velnox_action_confirm">Confirm</string>
+    <string name="velnox_action_cancel">Cancel</string>
+    <string name="velnox_action_save">Save</string>
+    <string name="velnox_action_close">Close</string>
+    <string name="velnox_action_back">Back</string>
+    <string name="velnox_action_search">Search</string>
+    <string name="velnox_action_sign_out">Sign out</string>
+    <string name="velnox_action_refresh">Refresh</string>
+    <string name="velnox_action_load_more">Load more</string>
+
+    <!-- Auth -->
+    <string name="velnox_auth_sign_in_google">Sign in with Google</string>
+    <string name="velnox_auth_sign_in_title">Sign in to Velnox</string>
+    <string name="velnox_auth_sign_in_subtitle">Use your Google account to get started.</string>
+    <string name="velnox_auth_not_configured">This build has no Google Client ID configured, so sign-in is unavailable.</string>
+    <string name="velnox_auth_cancelled">Sign-in cancelled.</string>
+    <string name="velnox_auth_no_account">No Google account was found on this device.</string>
+    <string name="velnox_auth_session_unverified_title">Could not verify your session</string>
+    <string name="velnox_auth_session_unverified_body">Your session is saved, but we cannot reach the server right now. Please try again.</string>
+    <string name="velnox_auth_signed_out_elsewhere">Your session ended. Please sign in again.</string>
+
+    <!-- Order statuses (mirrors ORDER_STATUS_META on web) -->
+    <string name="velnox_order_pending">Awaiting review</string>
+    <string name="velnox_order_confirmed">Confirmed</string>
+    <string name="velnox_order_shipped">Shipping</string>
+    <string name="velnox_order_delivered">Delivered</string>
+    <string name="velnox_order_completed">Completed</string>
+    <string name="velnox_order_cancelled">Cancelled</string>
+    <string name="velnox_order_unknown">Unknown status</string>
+
+    <!-- Order presentation shared by Velshop, Velseller and VelCenter -->
+    <string name="velnox_order_number">Order %1$s</string>
+    <string name="velnox_order_items">%1$d items</string>
+    <string name="velnox_order_items_label">Items</string>
+    <string name="velnox_order_tracking">Tracking %1$s</string>
+
+    <!-- Payment statuses -->
+    <string name="velnox_payment_unpaid">Unpaid</string>
+    <string name="velnox_payment_pending">Payment pending</string>
+    <string name="velnox_payment_paid">Paid</string>
+    <string name="velnox_payment_partially_refunded">Partially refunded</string>
+    <string name="velnox_payment_refunded">Refunded</string>
+    <string name="velnox_payment_failed">Payment failed</string>
+    <string name="velnox_payment_unknown">Unknown payment status</string>
+
+    <!-- Product lifecycle -->
+    <string name="velnox_product_draft">Draft</string>
+    <string name="velnox_product_pending_review">In review</string>
+    <string name="velnox_product_published">Published</string>
+    <string name="velnox_product_rejected">Rejected</string>
+    <string name="velnox_product_suspended">Suspended</string>
+    <string name="velnox_product_archived">Archived</string>
+    <string name="velnox_product_unknown">Unknown product status</string>
+
+    <!-- Seller application lifecycle -->
+    <string name="velnox_seller_pending">Application awaiting review</string>
+    <string name="velnox_seller_under_review">Under review</string>
+    <string name="velnox_seller_needs_correction">Corrections required</string>
+    <string name="velnox_seller_approved">Approved</string>
+    <string name="velnox_seller_rejected">Not approved</string>
+    <string name="velnox_seller_suspended">Suspended</string>
+    <string name="velnox_seller_unknown">Unknown seller status</string>
+
+    <!-- Verification -->
+    <string name="velnox_verified">Verified</string>
+    <string name="velnox_verification_pending">Verification pending</string>
+    <string name="velnox_verification_rejected">Verification rejected</string>
+    <string name="velnox_verification_suspended">Verification suspended</string>
+    <string name="velnox_not_verified">Not verified</string>
+
+    <string name="velnox_out_of_stock">Out of stock</string>
+    <string name="velnox_low_stock">%1$d left</string>
+
+    <!-- Account roles (users.role) -->
+    <string name="velnox_role_customer">Buyer</string>
+    <string name="velnox_role_seller">Seller</string>
+    <string name="velnox_role_admin">Administrator</string>
+    <string name="velnox_role_owner">Platform owner</string>
+    <string name="velnox_role_staff">Staff</string>
+    <string name="velnox_role_unknown">Unknown role</string>
+
+    <!-- Media -->
+    <string name="velnox_image_failed">Could not load image</string>
+    <string name="velnox_avatar_of">Profile photo of %1$s</string>
+
+</resources>

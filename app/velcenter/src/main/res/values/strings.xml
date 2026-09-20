@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VelCenter</string>
+
+    <string name="velcenter_auth_title">VelCenter</string>
+
+    <string name="velcenter_tab_dashboard">ภาพรวม</string>
+    <string name="velcenter_tab_sellers">ผู้ขาย</string>
+    <string name="velcenter_tab_moderation">ตรวจสินค้า</string>
+    <string name="velcenter_tab_orders">คำสั่งซื้อ</string>
+    <string name="velcenter_tab_account">บัญชี</string>
+
+    <string name="velcenter_dashboard_title">ภาพรวมแพลตฟอร์ม</string>
+    <string name="velcenter_sellers_title">จัดการผู้ขาย</string>
+    <string name="velcenter_moderation_title">ตรวจสอบสินค้า</string>
+    <string name="velcenter_orders_title">คำสั่งซื้อทั้งระบบ</string>
+    <string name="velcenter_account_title">บัญชีพนักงาน</string>
+
+    <!-- Dashboard -->
+    <string name="velcenter_dashboard_pending_sellers">ผู้ขายรออนุมัติ</string>
+    <string name="velcenter_dashboard_pending_products">สินค้ารอตรวจสอบ</string>
+    <string name="velcenter_dashboard_open_verifications">การยืนยันตัวตนที่เปิดอยู่</string>
+    <string name="velcenter_dashboard_total_users">ผู้ใช้ทั้งหมด</string>
+    <string name="velcenter_dashboard_total_sellers">ผู้ขายทั้งหมด</string>
+    <string name="velcenter_dashboard_total_products">สินค้าทั้งหมด</string>
+    <string name="velcenter_dashboard_total_orders">คำสั่งซื้อทั้งหมด</string>
+    <string name="velcenter_dashboard_gmv">ยอดขายรวม (GMV)</string>
+    <string name="velcenter_dashboard_unavailable">ไม่มีข้อมูล</string>
+    <string name="velcenter_dashboard_no_metrics">เซิร์ฟเวอร์ไม่ได้ส่งข้อมูลสรุปในขณะนี้</string>
+    <string name="velcenter_dashboard_note">ตัวเลขทั้งหมดเป็นค่าที่เซิร์ฟเวอร์คำนวณ ไม่ได้นับบนเครื่อง</string>
+
+    <!-- Sellers -->
+    <string name="velcenter_sellers_search">ค้นหาชื่อร้าน อีเมล หรือเบอร์โทร</string>
+    <string name="velcenter_sellers_empty">ไม่พบผู้ขายในกลุ่มนี้</string>
+    <string name="velcenter_sellers_all">ทั้งหมด</string>
+    <string name="velcenter_seller_shop">ร้าน %1$s</string>
+    <string name="velcenter_seller_products">สินค้า %1$d รายการ</string>
+    <string name="velcenter_seller_approve">อนุมัติ</string>
+    <string name="velcenter_seller_reject">ไม่อนุมัติ</string>
+    <string name="velcenter_seller_suspend">ระงับ</string>
+    <string name="velcenter_seller_needs_correction">ขอให้แก้ไข</string>
+    <string name="velcenter_seller_decision_title">ยืนยันการตัดสินใจ</string>
+    <string name="velcenter_seller_decision_body">%1$s จะถูกตั้งสถานะเป็น %2$s</string>
+    <string name="velcenter_seller_reason_label">เหตุผล (จำเป็นสำหรับการตัดสินใจนี้)</string>
+    <string name="velcenter_seller_reason_required">ต้องระบุเหตุผลก่อนยืนยัน</string>
+    <string name="velcenter_seller_updated">อัปเดตสถานะผู้ขายแล้ว</string>
+
+    <!-- Moderation -->
+    <string name="velcenter_moderation_all">ทั้งหมด</string>
+    <string name="velcenter_moderation_empty">ไม่มีสินค้าในคิวนี้</string>
+    <string name="velcenter_moderation_approve">อนุมัติและเผยแพร่</string>
+    <string name="velcenter_moderation_reject">ไม่อนุมัติ</string>
+    <string name="velcenter_moderation_submitted">ส่งเมื่อ %1$s</string>
+    <string name="velcenter_moderation_reason_label">เหตุผลที่ไม่อนุมัติ (จำเป็น)</string>
+    <string name="velcenter_moderation_updated">อัปเดตสถานะสินค้าแล้ว</string>
+
+    <!-- Orders -->
+    <string name="velcenter_orders_empty">ยังไม่มีคำสั่งซื้อในระบบ</string>
+    <string name="velcenter_order_customer">ลูกค้า</string>
+    <string name="velcenter_order_action">ตั้งเป็น %1$s</string>
+    <string name="velcenter_order_updated">อัปเดตสถานะคำสั่งซื้อแล้ว</string>
+    <string name="velcenter_order_transition_title">อัปเดตสถานะคำสั่งซื้อ</string>
+    <string name="velcenter_order_transition_body">คำสั่งซื้อ %1$s จะเปลี่ยนเป็น %2$s</string>
+    <string name="velcenter_order_reason_label">เหตุผล (จำเป็นเมื่อยกเลิก)</string>
+
+    <!-- Account -->
+    <string name="velcenter_account_role">บทบาท</string>
+    <string name="velcenter_account_department">แผนก</string>
+    <string name="velcenter_account_permissions">สิทธิ์ที่ได้รับ</string>
+    <string name="velcenter_account_note">ทุกคำขอจะถูกตรวจสอบสิทธิ์ที่เซิร์ฟเวอร์อีกครั้ง การซ่อนปุ่มในแอปไม่ถือเป็นการป้องกัน</string>
+    <string name="velcenter_account_not_set">ยังไม่ได้ระบุ</string>
+    <string name="velcenter_sign_out_title">ออกจากระบบ?</string>
+    <string name="velcenter_sign_out_body">เซสชันพนักงานจะถูกยกเลิกทั้งบนอุปกรณ์นี้และบนเซิร์ฟเวอร์</string>
+</resources>

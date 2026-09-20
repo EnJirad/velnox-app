@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Velseller launcher / splash mark.
+
+  A vector, like the other two apps, so the icon costs almost nothing in the APK and
+  scales cleanly. The glyph is the same Velnox palette as VelShop but a shopfront
+  instead of the V, so the three apps are distinguishable on a launcher without
+  inventing a second brand colour.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path
+        android:fillColor="#ECFDF5"
+        android:pathData="M0,0h108v108h-108z" />
+
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M26,32 L82,32 L76,46 L32,46 Z" />
+
+    <path
+        android:fillColor="#0F172A"
+        android:pathData="M36,48 L72,48 L72,80 L36,80 Z" />
+
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M43,57 L54,57 L54,69 L43,69 Z" />
+
+</vector>

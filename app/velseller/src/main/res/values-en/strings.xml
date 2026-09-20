@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Velseller</string>
+
+    <string name="velseller_auth_title">Velseller</string>
+
+    <string name="velseller_tab_overview">Overview</string>
+    <string name="velseller_tab_products">Products</string>
+    <string name="velseller_tab_orders">Orders</string>
+    <string name="velseller_tab_account">Account</string>
+
+    <string name="velseller_overview_title">Shop overview</string>
+    <string name="velseller_products_title">My products</string>
+    <string name="velseller_orders_title">Shop orders</string>
+    <string name="velseller_account_title">Shop account</string>
+
+    <!-- Overview -->
+    <string name="velseller_income_title">Income</string>
+    <string name="velseller_income_gross">Gross sales</string>
+    <string name="velseller_income_commission">Commission</string>
+    <string name="velseller_income_net">Net earnings</string>
+    <string name="velseller_income_pending">Pending payout</string>
+    <string name="velseller_income_orders">Orders</string>
+    <string name="velseller_income_units">Units sold</string>
+    <string name="velseller_income_average">Average order value</string>
+    <string name="velseller_revenue_note">Every figure is a server aggregate, never calculated on this device.</string>
+
+    <string name="velseller_goals_title">Sales goals</string>
+    <string name="velseller_goals_empty">No goals yet</string>
+    <string name="velseller_goal_add">Add goal</string>
+    <string name="velseller_goal_new_title">New goal</string>
+    <string name="velseller_goal_title_label">Goal title</string>
+    <string name="velseller_goal_metric_label">Metric (for example revenue, orders)</string>
+    <string name="velseller_goal_target_label">Target (number)</string>
+    <string name="velseller_goal_period_label">Period (for example 2026-09)</string>
+    <string name="velseller_goal_progress">%1$s of %2$s</string>
+    <string name="velseller_goal_delete">Delete goal</string>
+    <string name="velseller_goal_created">Goal added</string>
+    <string name="velseller_goal_deleted">Goal deleted</string>
+    <string name="velseller_goal_create_failed">Could not add the goal</string>
+    <string name="velseller_goal_invalid_target">Enter a target number greater than zero</string>
+
+    <!-- Products -->
+    <string name="velseller_products_empty">Your shop has no products yet</string>
+    <string name="velseller_products_empty_body">Create products on the Velseller website and they will appear here.</string>
+    <string name="velseller_products_all">All</string>
+    <string name="velseller_product_stock">%1$d %2$s in stock</string>
+    <string name="velseller_product_submit">Submit for review</string>
+    <string name="velseller_product_resubmit">Resubmit for review</string>
+    <string name="velseller_product_edit_stock">Edit stock</string>
+    <string name="velseller_product_delete">Delete product</string>
+    <string name="velseller_product_delete_confirm_title">Delete this product?</string>
+    <string name="velseller_product_delete_confirm_body">%1$s will be removed from your shop permanently.</string>
+    <string name="velseller_product_submitted">Product submitted for review</string>
+    <string name="velseller_product_stock_updated">Stock updated</string>
+    <string name="velseller_product_deleted">Product deleted</string>
+    <string name="velseller_product_rejection_reason">Reason: %1$s</string>
+    <string name="velseller_stock_dialog_title">Edit stock</string>
+    <string name="velseller_stock_label">Available quantity</string>
+    <string name="velseller_stock_invalid">Enter a whole number of 0 or more</string>
+
+    <!-- Orders -->
+    <string name="velseller_orders_empty">No orders yet</string>
+    <string name="velseller_orders_empty_body">Customer orders will appear here.</string>
+    <string name="velseller_order_customer">Customer %1$s</string>
+    <string name="velseller_order_action">Mark as %1$s</string>
+    <string name="velseller_order_tracking_label">Tracking number (optional)</string>
+    <string name="velseller_order_carrier_label">Carrier (optional)</string>
+    <string name="velseller_order_reason_label">Reason (required to cancel)</string>
+    <string name="velseller_order_updated">Order status updated</string>
+    <string name="velseller_order_transition_title">Update order status</string>
+    <string name="velseller_order_transition_body">Order %1$s will move to %2$s.</string>
+
+    <!-- Seller onboarding -->
+    <string name="velseller_status_title">Seller status</string>
+    <string name="velseller_status_none_title">Apply to open a shop</string>
+    <string name="velseller_status_none_body">Send an application to start selling on Velnox. The seller workspace opens once it is approved.</string>
+    <string name="velseller_status_pending_body">Your application is awaiting review.</string>
+    <string name="velseller_status_under_review_body">Our team is reviewing your application.</string>
+    <string name="velseller_status_needs_correction_body">Please correct the details we listed, then resubmit the application.</string>
+    <string name="velseller_status_rejected_body">Your application was not approved.</string>
+    <string name="velseller_status_suspended_body">Your shop is suspended. Please contact support.</string>
+    <string name="velseller_status_reapply">Resubmit application</string>
+    <string name="velseller_status_reason">Reason given: %1$s</string>
+
+    <string name="velseller_apply_title">Seller application</string>
+    <string name="velseller_apply_shop_name">Shop name</string>
+    <string name="velseller_apply_first_name">Applicant first name</string>
+    <string name="velseller_apply_last_name">Applicant last name</string>
+    <string name="velseller_apply_phone">Contact phone</string>
+    <string name="velseller_apply_description">Shop description (optional)</string>
+    <string name="velseller_apply_category">Shop category (optional)</string>
+    <string name="velseller_apply_id_number">ID number (optional)</string>
+    <string name="velseller_apply_documents">Identity documents</string>
+    <string name="velseller_apply_document_front">ID card (front)</string>
+    <string name="velseller_apply_document_back">ID card (back)</string>
+    <string name="velseller_apply_document_selfie">Selfie holding the ID</string>
+    <string name="velseller_apply_document_pick">Choose image</string>
+    <string name="velseller_apply_document_replace">Replace image</string>
+    <string name="velseller_apply_document_uploading">Uploading…</string>
+    <string name="velseller_apply_document_uploaded">Uploaded</string>
+    <string name="velseller_apply_document_required">Upload at least one document before applying</string>
+    <string name="velseller_apply_image_unsupported">That file is not an accepted image type (JPEG, PNG, WebP, AVIF)</string>
+    <string name="velseller_apply_image_too_large">Images must be 10 MB or smaller</string>
+    <string name="velseller_apply_submit">Submit application</string>
+    <string name="velseller_apply_submitted">Application submitted, awaiting review</string>
+    <string name="velseller_apply_privacy_note">Documents go straight to Cloudflare R2 through a short-lived signed URL. This app stores no file and no credential on the device.</string>
+
+    <!-- Account -->
+    <string name="velseller_account_shop">Shop details</string>
+    <string name="velseller_account_shop_name">Shop name</string>
+    <string name="velseller_account_shop_phone">Shop phone</string>
+    <string name="velseller_account_address">Shop address</string>
+    <string name="velseller_account_seller_status">Seller status</string>
+    <string name="velseller_account_verification">Verification</string>
+    <string name="velseller_account_not_set">Not set</string>
+    <string name="velseller_account_manage_on_web">Shop details, logo and address are edited on the Velseller website.</string>
+    <string name="velseller_sign_out_title">Sign out?</string>
+    <string name="velseller_sign_out_body">You will need to sign in with Google again, and this session will be revoked on the server.</string>
+</resources>

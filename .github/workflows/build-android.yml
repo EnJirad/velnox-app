@@ -1,0 +1,179 @@
+name: Build Android
+
+# Builds VelShop, Velseller and VelCenter from one repository.
+#
+# Contract (from the project brief):
+#   * all three apps must build in the same run;
+#   * a failure in ANY app fails the whole workflow — no "PASS/PASS/FAIL" success,
+#     no skipped app, no placeholder APK;
+#   * the run publishes `velnox-android-release.zip` containing exactly
+#     VelShop.apk, Velseller.apk and VelCenter.apk, as the `velnox-android-release`
+#     artifact.
+#
+# The fail-fast behaviour comes from GitHub Actions' own semantics: a step that exits
+# non-zero fails the job, and `set -euo pipefail` in the shell steps makes a failed
+# APK check abort the step. Nothing here is wrapped in `continue-on-error`, so a broken
+# app cannot be hidden.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false"
+  # Public value. Override with a repository variable if the backend moves.
+  VELNOX_API_BASE_URL: ${{ vars.VELNOX_API_BASE_URL || 'https://velnox-api.onrender.com' }}
+
+jobs:
+  build:
+    name: Build all Velnox apps
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-35 build-tools;35.0.0 platform-tools"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          # Keep the configuration cache off in CI: it is a local speed-up and its
+          # cache is per-machine, so enabling it here only adds failure modes.
+          cache-read-only: false
+
+      - name: Verify toolchain
+        run: |
+          set -euo pipefail
+          java -version
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME/platforms"
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Repository-level guards, run before the expensive Gradle work: the three
+      # application ids must be unique and namespaced (or one APK silently replaces
+      # another), the version catalog must resolve, and no backend secret name may
+      # appear in the shipped sources. Failing here is a five-second fix instead of a
+      # forty-minute build that produces a subtly wrong artefact.
+      - name: Verify build configuration
+        run: |
+          set -euo pipefail
+          bun tools/verify-android-config.ts
+
+      - name: Restore dependencies
+        run: |
+          set -euo pipefail
+          ./gradlew \
+            -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            --no-daemon \
+            :core:ui:dependencies :core:data:dependencies \
+            > /dev/null
+
+      - name: Run unit tests
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" testDebugUnitTest
+
+      - name: Run static analysis (lint)
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            lintDebug \
+            -Pandroid.lint.abortOnError=true
+
+      # One assemble invocation for all three apps. A failure in any app fails the
+      # step, which is exactly the required "all or nothing" behaviour.
+      - name: Assemble VelShop
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            :app:velshop:assembleDebug
+
+      - name: Assemble Velseller
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            :app:velseller:assembleDebug
+
+      - name: Assemble VelCenter
+        run: |
+          set -euo pipefail
+          ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            :app:velcenter:assembleDebug
+
+      # Explicit verification. `find` returning nothing yields an empty variable and
+      # the guard below fails the job — an APK that silently did not appear can never
+      # pass as success.
+      - name: Verify and rename APKs
+        run: |
+          set -euo pipefail
+
+          declare -A APKS=(
+            [VelShop]="app/velshop/build/outputs/apk/debug/velshop-debug.apk"
+            [Velseller]="app/velseller/build/outputs/apk/debug/velseller-debug.apk"
+            [VelCenter]="app/velcenter/build/outputs/apk/debug/velcenter-debug.apk"
+          )
+
+          mkdir -p release
+
+          for name in VelShop Velseller VelCenter; do
+            src="${APKS[$name]}"
+            if [ ! -f "$src" ]; then
+              echo "::error title=Missing APK::$name produced no APK at $src"
+              exit 1
+            fi
+            size=$(stat -c%s "$src")
+            if [ "$size" -lt 100000 ]; then
+              echo "::error title=Suspicious APK::$name APK is only ${size} bytes"
+              exit 1
+            fi
+            cp "$src" "release/${name}.apk"
+            echo "OK  ${name}.apk  (${size} bytes)"
+          done
+
+          # Exactly three APKs, no strays.
+          count=$(find release -maxdepth 1 -name '*.apk' | wc -l)
+          if [ "$count" -ne 3 ]; then
+            echo "::error title=Wrong APK count::expected 3 APKs, found $count"
+            exit 1
+          fi
+
+      - name: Create velnox-android-release.zip
+        run: |
+          set -euo pipefail
+          cd release
+          zip -X velnox-android-release.zip VelShop.apk Velseller.apk VelCenter.apk
+          unzip -l velnox-android-release.zip
+          mv velnox-android-release.zip ../velnox-android-release.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: velnox-android-release
+          path: velnox-android-release.zip
+          if-no-files-found: error
+          retention-days: 30

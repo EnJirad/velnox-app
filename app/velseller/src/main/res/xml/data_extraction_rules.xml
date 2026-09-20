@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Backup / device-transfer policy.
+
+  The session token is a 7-day bearer credential and a seller session can manage a
+  whole shop, so it must not travel to a new device through a cloud backup. The
+  encrypted session store is therefore excluded on both paths; the harmless image and
+  catalogue caches are not.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="velnox_secure_session.xml" />
+        <exclude domain="sharedpref" path="velnox_secure_session" />
+        <exclude domain="database" path="velnox-cache.db" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="velnox_secure_session.xml" />
+        <exclude domain="sharedpref" path="velnox_secure_session" />
+    </device-transfer>
+</data-extraction-rules>

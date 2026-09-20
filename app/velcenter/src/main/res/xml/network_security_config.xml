@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Network security policy, identical to the other two apps.
+
+  Cleartext is refused app-wide: a VelCenter session can approve sellers and moderate
+  products, so an accidental `http://` base URL must fail loudly rather than send a
+  privileged session token in the clear. Certificate pinning stays commented out until
+  the operator commits to a rotation plan — a pin without one bricks the app the day the
+  certificate changes.
+-->
+<network-security-config>
+
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!--
+    <domain-config>
+        <domain includeSubdomains="true">velnox-api.onrender.com</domain>
+        <pin-set expiration="2027-12-31">
+            <pin digest="SHA-256">REPLACE_WITH_BACKUP_PIN</pin>
+            <pin digest="SHA-256">REPLACE_WITH_PRIMARY_PIN</pin>
+        </pin-set>
+    </domain-config>
+    -->
+
+</network-security-config>

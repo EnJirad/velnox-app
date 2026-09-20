@@ -1,0 +1,16 @@
+# Copy to `local.properties` (git-ignored) and fill in for local builds.
+# CI supplies these through Gradle properties instead (-Pvelnox.api.baseUrl=...).
+
+# Absolute path to your Android SDK installation.
+sdk.dir=/path/to/Android/sdk
+
+# Velnox backend origin. No trailing slash, no /api suffix.
+velnox.api.baseUrl=https://velnox-api.onrender.com
+
+# Google *web* client id of the Velnox Google Cloud project.
+# This is a PUBLIC value (it already ships in the Velnox web bundles) and is
+# used as the `serverClientId` for Credential Manager sign-in so Google issues
+# an ID token whose `aud` matches the backend's GOOGLE_CLIENT_ID.
+# Leave empty to build an app that reports "sign-in not configured" instead of
+# ever falling back to a fake login.
+velnox.google.webClientId=

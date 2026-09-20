@@ -1,0 +1,165 @@
+# ANDROID_AUTH — Native authentication for Velnox
+
+## How Velnox web authenticates today
+
+Verified in `EnJirad/velnox-marketplace`:
+
+* `backend/routes/auth.ts` — `GET /auth/google` → Google consent → `/auth/google/callback`
+  exchanges the code server-side, verifies the ID token's audience against
+  `GOOGLE_CLIENT_ID`, resolves identity, then sets a JWT with a unique `jti` in an
+  **httpOnly `velnox_session` cookie**.
+* `backend/middleware/auth.ts` — `requireAuth` reads `req.cookies.velnox_session`,
+  verifies the signature, and rejects any `jti` present in `revoked_tokens`.
+* Identity resolution is transactional: `auth_identities (provider, provider_id)` →
+  normalised `users.email` → create. One person never gets two user rows.
+* `POST /api/auth/member-login` — VelCenter staff sign-in by e-mail **or** employee id
+  plus password; requires `role ∈ {owner, admin, staff}` and an active account.
+
+There is no bearer-token or refresh-token flow, and no OAuth client for Android.
+
+## What the Android app does
+
+### Session storage and transport
+
+`core:storage/SecureTokenStore` keeps the same JWT the browser keeps, encrypted with an
+AES-256-GCM key held in the **Android Keystore** (`EncryptedSharedPreferences`). It is
+excluded from cloud backup and device transfer (`data_extraction_rules.xml`), because a
+session that follows a backup silently extends the credential's reach to a device the
+user never signed in on.
+
+`core:auth/VelnoxSessionCookieJar` projects that one token into the exact cookie the
+backend reads, and `AuthHeaderInterceptor` attaches both:
+
+```
+Cookie: velnox_session=<jwt>
+Authorization: Bearer <jwt>
+```
+
+The cookie is what makes the app work against the **unmodified** backend, because
+`requireAuth` reads it exactly as it does for a browser. It also matters for
+correctness, not just compatibility:
+
+* `backend/middleware/rate-limit.ts` keys its per-user bucket on
+  `req.cookies.velnox_session` and falls back to IP without it — without the cookie every
+  Android request would share the much lower anonymous IP budget.
+* `backend/realtime/index.ts` authenticates the `/ws` handshake from the same cookie.
+
+**No `Origin` header is ever sent.** `backend/middleware/origin-guard.ts` accepts requests
+without an Origin as non-browser clients ("curl, Stripe webhook, **mobile app**") and
+rejects anything else with 403, so a native client must not pretend to be one of the
+allowlisted web origins.
+
+### Signing in on device
+
+Custom Tabs cannot hand cookies back to the app, and an embedded WebView is both
+prohibited by this project's rules and blocked by Google. The supported native
+equivalent is **Credential Manager** (`core:auth/NativeGoogleSignIn`), which returns a
+Google **ID token**.
+
+`velnox.google.webClientId` is passed as the Credential Manager `serverClientId`. That
+value is the Velnox *web* client id — a public value that already ships in the web
+bundles — which makes the resulting token's `aud` match the backend's existing
+`GOOGLE_CLIENT_ID`, so **no new OAuth client and no relaxed audience check is needed**.
+
+### The one backend addition required
+
+The browser flow finishes server-side because the *code* exchange needs
+`GOOGLE_CLIENT_SECRET`. A native client has an ID token, not a code, so the backend must
+accept it. Add this next to the existing routes in `backend/routes/auth.ts`:
+
+```ts
+/**
+ * POST /api/auth/native/google
+ * Body: { idToken: string }
+ * Exchanges a Google ID token obtained on-device for a Velnox session.
+ * Reuses the SAME identity resolution and the SAME JWT as the browser flow.
+ */
+app.post("/api/auth/native/google", async (req, res) => {
+  const idToken = typeof req.body?.idToken === "string" ? req.body.idToken : "";
+  if (!idToken) {
+    res.status(400).json({ success: false, error: { code: "VALIDATION_ERROR", message: "idToken is required" } });
+    return;
+  }
+
+  // Reuses verifyGoogleIdentity: tokeninfo + `claims.aud === GOOGLE_CLIENT_ID`.
+  const googleUser = await verifyGoogleIdentity(idToken);
+
+  // Same transactional resolution as the OAuth callback — one person, one user row.
+  const { userId } = await resolveUser(googleUser);
+
+  const userRow = await query(
+    "SELECT id, email, name, avatar, role, status, department, must_change_password FROM users WHERE id = $1",
+    [userId],
+  );
+  const u = userRow.rows[0];
+  if (!u) {
+    res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "User not found" } });
+    return;
+  }
+  if (u.status !== "active") {
+    res.status(403).json({ success: false, error: { code: "ACCOUNT_DISABLED", message: "Account is disabled" } });
+    return;
+  }
+
+  const token = createSessionToken(u.id, u.email);
+  setSessionCookie(res, token); // web clients keep working unchanged
+
+  res.json({
+    success: true,
+    data: {
+      token,
+      expiresInSeconds: 7 * 24 * 60 * 60,
+      user: { id: u.id, email: u.email, name: u.name, avatar: u.avatar, role: u.role,
+              status: u.status, department: u.department ?? null,
+              mustChangePassword: u.must_change_password === true },
+    },
+  });
+});
+```
+
+Also return the token from `member-login` so VelCenter can sign in natively — the
+existing endpoint already builds one, it just does not put it in the body:
+
+```ts
+// inside POST /api/auth/member-login, replacing the final res.json({ ... })
+res.json({
+  success: true,
+  data: { userId: userRow.id, email: userRow.email, name: userRow.name,
+          role: userRow.role, department: userRow.department, token: sessionToken },
+});
+```
+
+Both additions are additive: the cookie is still set, the web flows are untouched, no
+token gets a longer lifetime, and revocation through `revoked_tokens` applies identically.
+
+**Until that patch is deployed, native sign-in reports a configuration error.** The app
+never falls back to a locally minted credential, a hardcoded user, or a bypass — the
+brief forbids all three, and a client that mints its own session is not an
+authentication system.
+
+## Session lifecycle in the app
+
+`AuthRepository` exposes `AuthState`, and `VelnoxSessionGate` is the single component that
+decides what an app shows for it:
+
+| State | Meaning | UI |
+|-------|---------|----|
+| `Restoring` | A persisted token is being validated against `GET /api/auth/me`. | Loader — **not** the sign-in screen. |
+| `Unverified` | A token exists but `/me` was unreachable (offline, timeout, 5xx). | Retry screen. The token is **kept**; a tunnel must not sign anyone out. |
+| `Unauthenticated` | No token, or the server answered 401/404 for it. | Sign-in screen. |
+| `Authenticated(user)` | Identity confirmed by the backend. | The app. |
+
+`requireAuth` answering 401 triggers `AuthProvider.onSessionRejected()`, which clears the
+token, drops the realtime socket and returns the app to `Unauthenticated`. Sign-out calls
+`POST /api/auth/logout` (which revokes the `jti` server-side and closes that user's live
+sockets) and clears local state **even if that call fails** — the local token is
+discarded either way, and the failure is surfaced so the user knows the session may
+linger elsewhere until it expires.
+
+## What is banned here
+
+No fake login. No mock authentication. No bypassed authorization. No hardcoded user or
+token. No `DATABASE_URL`, `JWT_SECRET`, `GOOGLE_CLIENT_SECRET`, `R2_*`, or
+`BOOTSTRAP_OWNER_SECRET` anywhere in this repository or in a built APK. The only
+secret-adjacent value handled on device is the operator-entered bootstrap code, which is
+never stored, and `VelnoxLog`'s redactor masks it by pattern regardless.
