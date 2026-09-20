@@ -53,6 +53,7 @@ android {
     }
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -63,6 +64,8 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
+
     // Identical to VelShop on purpose: all three apps are one product, and a module
     // available to one of them but not another is how their behaviour drifts apart.
     implementation(project(":core:ui"))
