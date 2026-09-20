@@ -84,6 +84,20 @@ jobs:
           set -euo pipefail
           bun tools/verify-android-config.ts
 
+      # Guard against the class of failure that has no source-code cause: `gradlew`
+      # losing its executable bit. Git records the mode, but a tree produced by a tool
+      # that does not preserve it (a zip export, a copy through a filesystem without
+      # POSIX modes, a re-commit from an editor that rewrites the file) arrives as
+      # 100644 and every later `./gradlew` dies with "Permission denied" / exit 126.
+      # Failing here is instant and unambiguous, instead of surfacing as a confusing
+      # dependency-restore error.
+      - name: Prepare Gradle wrapper
+        run: |
+          set -euo pipefail
+          chmod +x ./gradlew
+          test -x ./gradlew
+          ./gradlew --version
+
       - name: Restore dependencies
         run: |
           set -euo pipefail
