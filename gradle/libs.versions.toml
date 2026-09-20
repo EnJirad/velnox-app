@@ -27,6 +27,7 @@ retrofitSerializationConverter = "1.0.0"
 datastore = "1.1.1"
 room = "2.6.1"
 coil = "2.7.0"
+desugar = "2.1.4"
 
 # ─── Test ────────────────────────────────────────────────────────────────────
 junit = "4.13.2"
@@ -96,6 +97,9 @@ googleid = { module = "com.google.android.libraries.identity.googleid:googleid",
 # Images
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coil" }
 coil-okhttp = { module = "io.coil-kt:coil", version.ref = "coil" }
+
+# Desugaring (java.time on API < 26)
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar" }
 
 # Test
 junit = { module = "junit:junit", version.ref = "junit" }
