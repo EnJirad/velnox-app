@@ -3,6 +3,7 @@ package com.velnox.velseller.presentation.orders
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.velnox.core.common.domain.OrderStatus
+import com.velnox.core.common.domain.allowedNextStatuses
 import com.velnox.core.common.error.AppError
 import com.velnox.core.common.error.VelnoxResult
 import com.velnox.core.data.model.Order
