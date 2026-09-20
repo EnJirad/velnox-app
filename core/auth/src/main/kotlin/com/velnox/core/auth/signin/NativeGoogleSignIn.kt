@@ -13,11 +13,10 @@ import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import com.velnox.core.auth.BuildConfig
+import com.velnox.core.common.coroutines.DispatcherProvider
 import com.velnox.core.common.error.AppError
 import com.velnox.core.logging.VelnoxLog
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -71,7 +70,11 @@ sealed interface GoogleSignInOutcome {
 @Singleton
 class NativeGoogleSignIn @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    // Injected through the module's own DispatcherProvider, like AuthRepository and
+    // SessionManager. A bare `CoroutineDispatcher` parameter cannot be provided by
+    // Dagger — a Kotlin default value is invisible to it — so the unqualified type had
+    // no binding and every app failed at hiltJavaCompile.
+    private val dispatchers: DispatcherProvider,
 ) {
 
     private val credentialManager: CredentialManager by lazy { CredentialManager.create(context) }
@@ -91,7 +94,7 @@ class NativeGoogleSignIn @Inject constructor(
             return GoogleSignInOutcome.NotConfigured
         }
 
-        return withContext(ioDispatcher) {
+        return withContext(dispatchers.io) {
             try {
                 // Always show the account chooser: a user with several Google
                 // accounts on the device must be able to pick the right one, and

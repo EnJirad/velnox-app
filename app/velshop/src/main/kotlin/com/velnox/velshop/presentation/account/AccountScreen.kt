@@ -40,6 +40,7 @@ import com.velnox.core.ui.component.VelnoxStateHost
 import com.velnox.core.ui.feature.auth.AuthViewModel
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velshop.R
 import com.velnox.velshop.navigation.VelShopTabRoutes
 import com.velnox.velshop.navigation.velShopTabs
@@ -158,7 +159,7 @@ fun AccountScreen(
 
                     item {
                         VelnoxSecondaryButton(
-                            text = stringResource(R.string.velnox_action_sign_out),
+                            text = stringResource(SharedR.string.velnox_action_sign_out),
                             onClick = { confirmSignOut = true },
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -189,14 +190,14 @@ fun AccountScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(R.string.velnox_action_sign_out),
+                        text = stringResource(SharedR.string.velnox_action_sign_out),
                         color = VelnoxColors.Destructive,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { confirmSignOut = false }) {
-                    Text(stringResource(R.string.velnox_action_cancel))
+                    Text(stringResource(SharedR.string.velnox_action_cancel))
                 }
             },
         )
@@ -224,10 +225,10 @@ private fun ProfileRows(profile: CustomerProfile) {
 /** Role label from the real `users.role` vocabulary. */
 @Composable
 private fun roleLabel(role: VelnoxRole): String = when (role) {
-    VelnoxRole.Customer -> stringResource(R.string.velnox_role_customer)
-    VelnoxRole.Seller -> stringResource(R.string.velnox_role_seller)
-    VelnoxRole.Admin -> stringResource(R.string.velnox_role_admin)
-    VelnoxRole.Owner -> stringResource(R.string.velnox_role_owner)
-    VelnoxRole.Staff -> stringResource(R.string.velnox_role_staff)
-    VelnoxRole.Unknown -> stringResource(R.string.velnox_role_unknown)
+    VelnoxRole.Customer -> stringResource(SharedR.string.velnox_role_customer)
+    VelnoxRole.Seller -> stringResource(SharedR.string.velnox_role_seller)
+    VelnoxRole.Admin -> stringResource(SharedR.string.velnox_role_admin)
+    VelnoxRole.Owner -> stringResource(SharedR.string.velnox_role_owner)
+    VelnoxRole.Staff -> stringResource(SharedR.string.velnox_role_staff)
+    VelnoxRole.Unknown -> stringResource(SharedR.string.velnox_role_unknown)
 }

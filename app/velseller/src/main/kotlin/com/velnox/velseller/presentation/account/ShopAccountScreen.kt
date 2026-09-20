@@ -39,6 +39,7 @@ import com.velnox.core.ui.component.VelnoxStateHost
 import com.velnox.core.ui.feature.auth.AuthViewModel
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velseller.R
 import com.velnox.velseller.navigation.VelSellerTabRoutes
 import com.velnox.velseller.navigation.velSellerTabs
@@ -159,7 +160,7 @@ fun ShopAccountScreen(
 
                     item {
                         VelnoxSecondaryButton(
-                            text = stringResource(R.string.velnox_action_sign_out),
+                            text = stringResource(SharedR.string.velnox_action_sign_out),
                             onClick = { confirmSignOut = true },
                             modifier = Modifier.fillMaxWidth(),
                         )
@@ -182,14 +183,14 @@ fun ShopAccountScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(R.string.velnox_action_sign_out),
+                        text = stringResource(SharedR.string.velnox_action_sign_out),
                         color = VelnoxColors.Destructive,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { confirmSignOut = false }) {
-                    Text(stringResource(R.string.velnox_action_cancel))
+                    Text(stringResource(SharedR.string.velnox_action_cancel))
                 }
             },
         )

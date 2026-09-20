@@ -47,6 +47,7 @@ import com.velnox.core.ui.component.VelnoxStateHost
 import com.velnox.core.ui.theme.PriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velshop.R
 import com.velnox.velshop.navigation.VelShopTabRoutes
 import com.velnox.velshop.navigation.velShopTabs
@@ -91,7 +92,7 @@ fun CartScreen(
                         stringResource(R.string.velshop_cart_item_removed)
 
                     is CartViewModel.CartNotice.Failure ->
-                        notice.error.serverMessage ?: stringResource(R.string.velnox_state_error_body)
+                        notice.error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body)
                 }
                 VelnoxMessageBanner(
                     message = message,
@@ -221,7 +222,7 @@ private fun CartLineCard(
 
                 if (line.isOutOfStock) {
                     VelnoxChip(
-                        text = stringResource(R.string.velnox_out_of_stock),
+                        text = stringResource(SharedR.string.velnox_out_of_stock),
                         background = VelnoxColors.DestructiveSurface,
                         contentColor = VelnoxColors.Destructive,
                         modifier = Modifier.padding(top = VelnoxTokens.spacing.gapTiny),

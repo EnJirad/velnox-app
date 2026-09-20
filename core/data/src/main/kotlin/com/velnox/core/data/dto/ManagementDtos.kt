@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
  * (`/api/seller/status`, `/api/seller/profile`, `/api/seller/apply`),
  * `backend/routes/seller-orders.ts`, `backend/routes/seller-intelligence.ts`
  * (`/api/seller/income`, `/api/seller/goals`) and `backend/routes/center.ts`
- * (`/api/admin/*`). `/api/seller/status` answers `data: null` for an authenticated
+ * (`/api/admin/...`). `/api/seller/status` answers `data: null` for an authenticated
  * user who has not applied — that is handled by `safeApiCallAllowNull`, not by a
  * fabricated DTO.
  */

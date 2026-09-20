@@ -45,7 +45,10 @@ class RealtimeLifecycleController @Inject constructor(
         scope.launch {
             combine(
                 authRepository.authState.map { it.userOrNull?.id }.distinctUntilChanged(),
-                foregroundTracker.isForeground.distinctUntilChanged(),
+                // No distinctUntilChanged() here: `isForeground` is a StateFlow, which
+                // already never re-emits an equal value, and calling the operator on a
+                // StateFlow is a hard deprecation error (it is a documented no-op).
+                foregroundTracker.isForeground,
             ) { userId, isForeground -> userId to isForeground }
                 .collect { (userId, isForeground) -> applyState(userId, isForeground) }
         }

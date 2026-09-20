@@ -36,6 +36,7 @@ import com.velnox.core.ui.component.VelnoxSectionHeader
 import com.velnox.core.ui.feature.auth.AuthViewModel
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velcenter.R
 import com.velnox.velcenter.navigation.VelCenterTabRoutes
 import com.velnox.velcenter.navigation.velCenterTabs
@@ -46,7 +47,7 @@ import com.velnox.velcenter.navigation.velCenterTabs
  * The identity and the permission set shown here come from the backend's own
  * `/api/auth/me` response — the app has no second source of truth for "what may I do".
  * The note on the card states the rule the whole suite follows: hiding a control is a
- * usability choice, never a security boundary, because every `/api/admin/*` route
+ * usability choice, never a security boundary, because every `/api/admin/...` route
  * re-resolves the caller's role and permission code server-side.
  */
 @Composable
@@ -141,7 +142,7 @@ fun StaffAccountScreen(
             }
 
             VelnoxSecondaryButton(
-                text = stringResource(R.string.velnox_action_sign_out),
+                text = stringResource(SharedR.string.velnox_action_sign_out),
                 onClick = { confirmSignOut = true },
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -161,14 +162,14 @@ fun StaffAccountScreen(
                     },
                 ) {
                     Text(
-                        text = stringResource(R.string.velnox_action_sign_out),
+                        text = stringResource(SharedR.string.velnox_action_sign_out),
                         color = VelnoxColors.Destructive,
                     )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { confirmSignOut = false }) {
-                    Text(stringResource(R.string.velnox_action_cancel))
+                    Text(stringResource(SharedR.string.velnox_action_cancel))
                 }
             },
         )
@@ -178,11 +179,11 @@ fun StaffAccountScreen(
 /** Localised role, from the shared string set. */
 @Composable
 private fun roleLabel(role: VelnoxRole): String = when (role) {
-    VelnoxRole.Customer -> stringResource(R.string.velnox_role_customer)
-    VelnoxRole.Seller -> stringResource(R.string.velnox_role_seller)
-    VelnoxRole.Admin -> stringResource(R.string.velnox_role_admin)
-    VelnoxRole.Owner -> stringResource(R.string.velnox_role_owner)
-    VelnoxRole.Staff -> stringResource(R.string.velnox_role_staff)
-    VelnoxRole.Unknown -> stringResource(R.string.velnox_role_unknown)
+    VelnoxRole.Customer -> stringResource(SharedR.string.velnox_role_customer)
+    VelnoxRole.Seller -> stringResource(SharedR.string.velnox_role_seller)
+    VelnoxRole.Admin -> stringResource(SharedR.string.velnox_role_admin)
+    VelnoxRole.Owner -> stringResource(SharedR.string.velnox_role_owner)
+    VelnoxRole.Staff -> stringResource(SharedR.string.velnox_role_staff)
+    VelnoxRole.Unknown -> stringResource(SharedR.string.velnox_role_unknown)
 }
 

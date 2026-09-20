@@ -3,6 +3,7 @@ package com.velnox.core.network.di
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
+import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import com.velnox.core.network.BuildConfig
 import com.velnox.core.network.auth.AuthTokenProvider
 import com.velnox.core.network.interceptor.AuthHeaderInterceptor
@@ -21,7 +22,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton

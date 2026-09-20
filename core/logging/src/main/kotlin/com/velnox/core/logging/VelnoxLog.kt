@@ -41,7 +41,12 @@ object VelnoxLog {
         Log.i(tag(tag), Redactor.redact(message()).truncate())
     }
 
-    fun w(tag: String, message: () -> String, throwable: Throwable? = null) {
+    // The message lambda is the last parameter on purpose: it makes every call site the
+    // uniform `VelnoxLog.w(TAG) { "…" }`, and a throwable is still passable as
+    // `VelnoxLog.w(TAG, throwable) { "…" }`. With it declared before the optional
+    // throwable, trailing-lambda syntax binds the lambda to `throwable` instead and no
+    // call site with the trailing-lambda shape compiles.
+    fun w(tag: String, throwable: Throwable? = null, message: () -> String) {
         Log.w(tag(tag), Redactor.redact(message()).truncate(), throwable?.safeForLog())
     }
 
@@ -50,7 +55,7 @@ object VelnoxLog {
      * message — a stack trace from OkHttp can embed a full URL with a signed
      * query string.
      */
-    fun e(tag: String, message: () -> String, throwable: Throwable? = null) {
+    fun e(tag: String, throwable: Throwable? = null, message: () -> String) {
         Log.e(tag(tag), Redactor.redact(message()).truncate(), throwable?.safeForLog())
     }
 
@@ -77,6 +82,15 @@ object VelnoxLog {
         if (length <= MAX_MESSAGE_LENGTH) this else take(MAX_MESSAGE_LENGTH) + "… (${length - MAX_MESSAGE_LENGTH} more chars)"
 }
 
-/** Throws away the original message/stack, keeping only the exception identity. */
+/**
+ * Throws away the original message/stack, keeping only the exception identity.
+ *
+ * `Throwable(String, Throwable, Boolean, Boolean)` is `protected`, so it can only be
+ * reached from a subclass — hence this type instead of a direct constructor call.
+ * `writableStackTrace = false` is the point: the trace is never captured at all, because
+ * one from OkHttp can embed a full URL with a signed query string.
+ */
+private class LogSafeThrowable(message: String) : Throwable(message, null, false, false)
+
 private fun Throwable.safeForLog(): Throwable =
-    Throwable("${this::class.java.simpleName}: ${Redactor.redact(message ?: "")}", null, false, false)
+    LogSafeThrowable("${this::class.java.simpleName}: ${Redactor.redact(message ?: "")}")

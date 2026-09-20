@@ -40,6 +40,8 @@ android {
 
     buildFeatures {
         compose = true
+        // Required for `BuildConfig.DEBUG`; see the note in VelShop's script.
+        buildConfig = true
     }
 
     packaging {

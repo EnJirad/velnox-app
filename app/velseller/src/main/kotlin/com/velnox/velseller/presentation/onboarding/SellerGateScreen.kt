@@ -37,6 +37,7 @@ import com.velnox.core.ui.component.VelnoxSectionHeader
 import com.velnox.core.ui.feature.auth.AuthViewModel
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velseller.R
 import com.velnox.velseller.navigation.SellerWorkspace
 
@@ -135,7 +136,7 @@ private fun SellerStatusScreen(
         SellerStatus.Rejected -> stringResource(R.string.velseller_status_rejected_body)
         SellerStatus.Suspended -> stringResource(R.string.velseller_status_suspended_body)
         SellerStatus.Approved -> stringResource(R.string.velseller_status_none_body)
-        SellerStatus.Unknown -> stringResource(R.string.velnox_seller_unknown)
+        SellerStatus.Unknown -> stringResource(SharedR.string.velnox_seller_unknown)
     }
 
     val reason = info?.correctionReason ?: info?.rejectionReason
@@ -205,13 +206,13 @@ private fun SellerStatusScreen(
             }
 
             VelnoxSecondaryButton(
-                text = stringResource(R.string.velnox_action_refresh),
+                text = stringResource(SharedR.string.velnox_action_refresh),
                 onClick = onRefresh,
             )
 
             TextButton(onClick = authViewModel::signOut) {
                 Text(
-                    text = stringResource(R.string.velnox_action_sign_out),
+                    text = stringResource(SharedR.string.velnox_action_sign_out),
                     color = VelnoxColors.OnSurfaceMuted,
                 )
             }

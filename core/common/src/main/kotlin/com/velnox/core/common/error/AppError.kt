@@ -22,13 +22,13 @@ sealed class AppError(
     /** Device has no usable connection, or DNS/connect failed outright. */
     data class Offline(
         override val serverMessage: String? = null,
-        val cause: Throwable? = null,
+        override val cause: Throwable? = null,
     ) : AppError(serverCode = "OFFLINE", serverMessage = serverMessage, cause = cause)
 
     /** Socket connected but the exchange exceeded the configured timeout. */
     data class Timeout(
         override val serverMessage: String? = null,
-        val cause: Throwable? = null,
+        override val cause: Throwable? = null,
     ) : AppError(serverCode = "TIMEOUT", serverMessage = serverMessage, cause = cause)
 
     /** HTTP 401 — the session is missing, expired or revoked. */
@@ -77,13 +77,13 @@ sealed class AppError(
     /** The body did not match the contract we compiled against. */
     data class Serialization(
         override val serverMessage: String? = null,
-        val cause: Throwable? = null,
+        override val cause: Throwable? = null,
     ) : AppError(serverCode = "SERIALIZATION_ERROR", serverMessage = serverMessage, cause = cause)
 
     /** Last resort. Never carries credentials or raw bodies. */
     data class Unexpected(
         override val serverMessage: String? = null,
-        val cause: Throwable? = null,
+        override val cause: Throwable? = null,
     ) : AppError(serverCode = "INTERNAL_ERROR", serverMessage = serverMessage, cause = cause)
 
     /** True when retrying the same idempotent request has a real chance. */

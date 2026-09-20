@@ -41,6 +41,11 @@ android {
 
     buildFeatures {
         compose = true
+        // The app reads `BuildConfig.DEBUG` at startup, and
+        // `android.defaults.buildfeatures.buildconfig=false` (gradle.properties) turns the
+        // class off project-wide unless a module opts back in — as core:network,
+        // core:storage, core:auth and core:data already do.
+        buildConfig = true
     }
 
     packaging {

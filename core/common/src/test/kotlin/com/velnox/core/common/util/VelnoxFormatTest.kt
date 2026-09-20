@@ -1,9 +1,9 @@
 package com.velnox.core.common.util
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldEndWith
-import io.kotest.matchers.string.shouldNotBe
 import io.kotest.matchers.string.shouldStartWith
 import org.junit.Test
 

@@ -47,6 +47,7 @@ import com.velnox.core.ui.component.VelnoxStateHost
 import com.velnox.core.ui.theme.HeroPriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velshop.R
 import com.velnox.velshop.navigation.VelShopTabRoutes
 import com.velnox.velshop.navigation.velShopTabs
@@ -91,7 +92,7 @@ fun ProductDetailScreen(
                         stringResource(R.string.velshop_added_to_cart)
 
                     is ProductDetailViewModel.ProductNotice.Failure ->
-                        notice.error.serverMessage ?: stringResource(R.string.velnox_state_error_body)
+                        notice.error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body)
                 }
                 VelnoxMessageBanner(
                     message = bannerText,
@@ -228,7 +229,7 @@ private fun ProductDetailContent(
                 ) {
                     if (product.verificationStatus.isVerified) {
                         VelnoxChip(
-                            text = stringResource(R.string.velnox_verified),
+                            text = stringResource(SharedR.string.velnox_verified),
                             background = VelnoxColors.EmeraldSurface,
                             contentColor = VelnoxColors.EmeraldOnSurface,
                         )

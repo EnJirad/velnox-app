@@ -43,6 +43,7 @@ import com.velnox.core.ui.component.VelnoxStateHost
 import com.velnox.core.ui.theme.PriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velshop.R
 import com.velnox.velshop.navigation.VelShopTabRoutes
 import com.velnox.velshop.navigation.velShopTabs
@@ -95,7 +96,7 @@ fun OrdersScreen(
                         stringResource(R.string.velshop_order_cancelled_notice)
 
                     is OrdersViewModel.OrdersNotice.Failure ->
-                        notice.error.serverMessage ?: stringResource(R.string.velnox_state_error_body)
+                        notice.error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body)
                 }
                 VelnoxMessageBanner(
                     message = message,
@@ -178,7 +179,7 @@ fun OrdersScreen(
             },
             dismissButton = {
                 TextButton(onClick = { orderPendingCancellation = null }) {
-                    Text(stringResource(R.string.velnox_action_cancel))
+                    Text(stringResource(SharedR.string.velnox_action_cancel))
                 }
             },
         )

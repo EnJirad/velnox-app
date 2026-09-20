@@ -45,6 +45,7 @@ import com.velnox.core.ui.component.VelnoxStateHost
 import com.velnox.core.ui.component.VelnoxTextField
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velcenter.R
 import com.velnox.velcenter.navigation.VelCenterTabRoutes
 import com.velnox.velcenter.navigation.velCenterTabs
@@ -81,7 +82,7 @@ fun SellersScreen(
                         stringResource(R.string.velcenter_seller_updated) to VelnoxBannerTone.Success
 
                     is SellersViewModel.SellersNotice.Failure ->
-                        (notice.error.serverMessage ?: stringResource(R.string.velnox_state_error_body)) to
+                        (notice.error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body)) to
                             VelnoxBannerTone.Error
                 }
                 VelnoxMessageBanner(
@@ -309,12 +310,12 @@ private fun DecisionDialog(
                 onClick = { onConfirm(reason) },
                 enabled = !decision.requiresReason || reason.isNotBlank(),
             ) {
-                Text(stringResource(R.string.velnox_action_confirm))
+                Text(stringResource(SharedR.string.velnox_action_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.velnox_action_cancel))
+                Text(stringResource(SharedR.string.velnox_action_cancel))
             }
         },
     )
@@ -323,13 +324,13 @@ private fun DecisionDialog(
 /** Localised seller status, from the shared string set so all three apps agree. */
 @Composable
 private fun sellerStatusLabel(status: SellerStatus): String = when (status) {
-    SellerStatus.Pending -> stringResource(R.string.velnox_seller_pending)
-    SellerStatus.UnderReview -> stringResource(R.string.velnox_seller_under_review)
-    SellerStatus.NeedsCorrection -> stringResource(R.string.velnox_seller_needs_correction)
-    SellerStatus.Approved -> stringResource(R.string.velnox_seller_approved)
-    SellerStatus.Rejected -> stringResource(R.string.velnox_seller_rejected)
-    SellerStatus.Suspended -> stringResource(R.string.velnox_seller_suspended)
-    SellerStatus.Unknown -> stringResource(R.string.velnox_seller_unknown)
+    SellerStatus.Pending -> stringResource(SharedR.string.velnox_seller_pending)
+    SellerStatus.UnderReview -> stringResource(SharedR.string.velnox_seller_under_review)
+    SellerStatus.NeedsCorrection -> stringResource(SharedR.string.velnox_seller_needs_correction)
+    SellerStatus.Approved -> stringResource(SharedR.string.velnox_seller_approved)
+    SellerStatus.Rejected -> stringResource(SharedR.string.velnox_seller_rejected)
+    SellerStatus.Suspended -> stringResource(SharedR.string.velnox_seller_suspended)
+    SellerStatus.Unknown -> stringResource(SharedR.string.velnox_seller_unknown)
 }
 
 /** Localised label for a wire status value coming back from a decision. */

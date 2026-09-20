@@ -35,6 +35,7 @@ import com.velnox.core.ui.component.VelnoxStateHost
 import com.velnox.core.ui.theme.PriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velshop.R
 import com.velnox.velshop.navigation.VelShopTabRoutes
 import com.velnox.velshop.navigation.velShopTabs
@@ -219,19 +220,19 @@ internal fun ProductRowCard(
                 Row(horizontalArrangement = Arrangement.spacedBy(VelnoxTokens.spacing.gapTiny)) {
                     when {
                         !product.isPurchasable -> VelnoxChip(
-                            text = stringResource(R.string.velnox_out_of_stock),
+                            text = stringResource(SharedR.string.velnox_out_of_stock),
                             background = VelnoxColors.SurfaceMuted,
                             contentColor = VelnoxColors.OnSurfaceMuted,
                         )
 
                         product.isLowStock -> VelnoxChip(
-                            text = stringResource(R.string.velnox_low_stock, product.availableStock),
+                            text = stringResource(SharedR.string.velnox_low_stock, product.availableStock),
                             background = VelnoxColors.WarningSurface,
                             contentColor = VelnoxColors.WarningOnSurface,
                         )
                     }
                     if (isCached) {
-                        VelnoxChip(text = stringResource(R.string.velnox_state_cached_notice))
+                        VelnoxChip(text = stringResource(SharedR.string.velnox_state_cached_notice))
                     }
                 }
             }

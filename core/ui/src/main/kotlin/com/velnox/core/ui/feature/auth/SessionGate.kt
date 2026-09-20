@@ -47,8 +47,11 @@ fun VelnoxSessionGate(
     modifier: Modifier = Modifier,
     allowStaffSignIn: Boolean = false,
     requiredRole: RoleRequirement = RoleRequirement.AnyAuthenticatedUser,
-    content: @Composable (VelnoxUser) -> Unit,
+    // Declared before `content` so the trailing lambda at every call site binds to
+    // `content`. With the view model last, `VelnoxSessionGate(...) { … }` binds the
+    // lambda to `viewModel` instead and no call site compiles.
     viewModel: AuthViewModel = hiltViewModel(),
+    content: @Composable (VelnoxUser) -> Unit,
 ) {
     val state by viewModel.authState.collectAsStateWithLifecycle()
 

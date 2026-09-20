@@ -25,7 +25,7 @@ import com.velnox.velseller.presentation.products.ProductsScreen
  * Velseller's front door is the **seller application**, which any signed-in Velnox user
  * may submit — a customer becomes a seller by applying, so gating the app on the
  * `seller` role would make applying impossible. The role check that matters is
- * server-side: every `/api/seller/*` endpoint resolves `user → seller → shop` and
+ * server-side: every `/api/seller/...` endpoint resolves `user → seller → shop` and
  * refuses a non-seller, and [SellerWorkspaceGate] only shows the workspace when
  * `GET /api/seller/status` reports an approved seller.
  *

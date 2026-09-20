@@ -43,6 +43,7 @@ import com.velnox.core.ui.component.VelnoxTextField
 import com.velnox.core.ui.theme.PriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velshop.R
 
 /**
@@ -96,7 +97,7 @@ fun CheckoutScreen(
         ) {
             state.error?.let { error ->
                 VelnoxMessageBanner(
-                    message = error.serverMessage ?: stringResource(R.string.velnox_state_error_body),
+                    message = error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body),
                     tone = VelnoxBannerTone.Error,
                     onDismiss = viewModel::consumeError,
                     modifier = Modifier.padding(

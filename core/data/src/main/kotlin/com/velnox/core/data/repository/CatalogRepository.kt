@@ -9,10 +9,10 @@ import com.velnox.core.common.domain.VerificationStatus
 import com.velnox.core.common.paging.PageRequest
 import com.velnox.core.data.api.VelnoxCatalogApi
 import com.velnox.core.data.dto.CatalogQuery
-import com.velnox.core.data.dto.toCategoryTree
 import com.velnox.core.data.model.Category
 import com.velnox.core.data.model.Product
 import com.velnox.core.data.model.Shop
+import com.velnox.core.data.model.toCategoryTree
 import com.velnox.core.data.model.toDomain
 import com.velnox.core.database.dao.CachedCatalogDao
 import com.velnox.core.database.dao.CachedCategoryDao

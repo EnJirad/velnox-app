@@ -46,6 +46,7 @@ import com.velnox.core.ui.component.VelnoxTextField
 import com.velnox.core.ui.theme.PriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velcenter.R
 import com.velnox.velcenter.navigation.VelCenterTabRoutes
 import com.velnox.velcenter.navigation.velCenterTabs
@@ -82,7 +83,7 @@ fun CenterOrdersScreen(
                         stringResource(R.string.velcenter_order_updated) to VelnoxBannerTone.Success
 
                     is CenterOrdersViewModel.CenterOrdersNotice.Failure ->
-                        (notice.error.serverMessage ?: stringResource(R.string.velnox_state_error_body)) to
+                        (notice.error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body)) to
                             VelnoxBannerTone.Error
                 }
                 VelnoxMessageBanner(
@@ -143,7 +144,7 @@ private fun CenterOrderCard(
     VelnoxCard(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = stringResource(R.string.velnox_order_number, order.shortNumber),
+                text = stringResource(SharedR.string.velnox_order_number, order.shortNumber),
                 style = MaterialTheme.typography.titleSmall,
                 color = VelnoxColors.OnSurface,
                 modifier = Modifier.weight(1f),
@@ -170,12 +171,12 @@ private fun CenterOrderCard(
             value = order.customerName ?: order.customerPhone.orEmpty(),
         )
         VelnoxInfoRow(
-            label = stringResource(R.string.velnox_order_items_label),
-            value = stringResource(R.string.velnox_order_items, order.itemCount),
+            label = stringResource(SharedR.string.velnox_order_items_label),
+            value = stringResource(SharedR.string.velnox_order_items, order.itemCount),
         )
         order.trackingNumber?.let { tracking ->
             Text(
-                text = stringResource(R.string.velnox_order_tracking, tracking),
+                text = stringResource(SharedR.string.velnox_order_tracking, tracking),
                 style = MaterialTheme.typography.bodySmall,
                 color = VelnoxColors.InfoOnSurface,
             )
@@ -262,12 +263,12 @@ private fun TransitionDialog(
                 onClick = { onConfirm(reason) },
                 enabled = !request.requiresReason || reason.isNotBlank(),
             ) {
-                Text(stringResource(R.string.velnox_action_confirm))
+                Text(stringResource(SharedR.string.velnox_action_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.velnox_action_cancel))
+                Text(stringResource(SharedR.string.velnox_action_cancel))
             }
         },
     )
@@ -276,11 +277,11 @@ private fun TransitionDialog(
 /** Localised order status, from the shared string set. */
 @Composable
 private fun orderStatusLabel(status: OrderStatus): String = when (status) {
-    OrderStatus.Pending -> stringResource(R.string.velnox_order_pending)
-    OrderStatus.Confirmed -> stringResource(R.string.velnox_order_confirmed)
-    OrderStatus.Shipped -> stringResource(R.string.velnox_order_shipped)
-    OrderStatus.Delivered -> stringResource(R.string.velnox_order_delivered)
-    OrderStatus.Completed -> stringResource(R.string.velnox_order_completed)
-    OrderStatus.Cancelled -> stringResource(R.string.velnox_order_cancelled)
-    OrderStatus.Unknown -> stringResource(R.string.velnox_order_unknown)
+    OrderStatus.Pending -> stringResource(SharedR.string.velnox_order_pending)
+    OrderStatus.Confirmed -> stringResource(SharedR.string.velnox_order_confirmed)
+    OrderStatus.Shipped -> stringResource(SharedR.string.velnox_order_shipped)
+    OrderStatus.Delivered -> stringResource(SharedR.string.velnox_order_delivered)
+    OrderStatus.Completed -> stringResource(SharedR.string.velnox_order_completed)
+    OrderStatus.Cancelled -> stringResource(SharedR.string.velnox_order_cancelled)
+    OrderStatus.Unknown -> stringResource(SharedR.string.velnox_order_unknown)
 }

@@ -186,9 +186,17 @@ fun ProductDto.toDomain(): Product {
     }
 
     val gallery = images.filterNot { it.imageType == "detail" }
+    // The API sends `detailImages` separately, but a payload that only carries `images`
+    // still has its detail-typed entries in there. Fold both in, deduplicated by id, so
+    // the detail strip is populated either way and no image can appear twice.
+    val details = (detailImages + images.filter { it.imageType == "detail" }).distinctBy { it.id }
+    // Every branch must map to the domain type: mixing a mapped ProductImage with a raw
+    // ProductImageDto widened `primary` to their common supertype, so `primary?.url`
+    // below had nothing to resolve against. Mapping the fallbacks too also means the
+    // chosen image honours `displayUrl`, which is the whole point of `toDomain()`.
     val primary = primaryImage?.toDomain()
-        ?: gallery.firstOrNull { it.isPrimary }
-        ?: gallery.firstOrNull()
+        ?: gallery.firstOrNull { it.isPrimary }?.toDomain()
+        ?: gallery.firstOrNull()?.toDomain()
 
     return Product(
         id = id,
@@ -205,9 +213,11 @@ fun ProductDto.toDomain(): Product {
         rejectionReason = rejectionReason?.takeIf { it.isNotBlank() },
         images = gallery.sortedBy { it.sortOrder }.map { it.toDomain() },
         primaryImageUrl = primary?.url,
-        detailImages = detailImages.map { it.toDomain() }.sortedBy { it.sortOrder },
+        detailImages = details.map { it.toDomain() }.sortedBy { it.sortOrder },
         variants = variants.map { it.toDomain() },
-        optionGroups = optionGroups.map { it.toDomain() }.sortedBy { it.sortOrder },
+        // Sort the DTOs, then map: `sortOrder` is a wire field, and the domain
+        // ProductOptionGroup deliberately does not carry it (same pattern as `values`).
+        optionGroups = optionGroups.sortedBy { it.sortOrder }.map { it.toDomain() },
         availableStock = available.coerceAtLeast(0),
         reorderLevel = inventory?.reorderLevel ?: reorderLevel ?: 0,
         shopName = shopName?.takeIf { it.isNotBlank() },

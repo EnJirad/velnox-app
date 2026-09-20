@@ -5,8 +5,8 @@
   the Compose theme (core:ui/theme), so this file must not grow into a second design
   system.
 
-  Colours match `--background: #f8fafc` so there is no flash of a different shade
-  between the system window and the first composed frame.
+  Colours match the background token (#f8fafc) so there is no flash of a different
+  shade between the system window and the first composed frame.
 -->
 <resources>
 

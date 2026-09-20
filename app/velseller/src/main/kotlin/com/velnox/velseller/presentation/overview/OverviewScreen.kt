@@ -44,6 +44,7 @@ import com.velnox.core.ui.component.VelnoxTextField
 import com.velnox.core.ui.theme.PriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velseller.R
 import com.velnox.velseller.navigation.VelSellerTabRoutes
 import com.velnox.velseller.navigation.velSellerTabs
@@ -137,7 +138,7 @@ fun OverviewScreen(
                         if (data.goalsUnavailable) {
                             item {
                                 VelnoxMessageBanner(
-                                    message = stringResource(R.string.velnox_state_error_body),
+                                    message = stringResource(SharedR.string.velnox_state_error_body),
                                     tone = VelnoxBannerTone.Warning,
                                 )
                             }
@@ -311,12 +312,12 @@ private fun NewGoalDialog(
                 onClick = { onConfirm(title, metric, target, period) },
                 enabled = title.isNotBlank() && target.isNotBlank(),
             ) {
-                Text(stringResource(R.string.velnox_action_confirm))
+                Text(stringResource(SharedR.string.velnox_action_confirm))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.velnox_action_cancel))
+                Text(stringResource(SharedR.string.velnox_action_cancel))
             }
         },
     )

@@ -44,6 +44,7 @@ import com.velnox.core.ui.component.VelnoxSectionHeader
 import com.velnox.core.ui.component.VelnoxTextField
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velseller.R
 
 /**
@@ -111,7 +112,7 @@ fun SellerApplicationScreen(
             state.error?.let { error ->
                 item {
                     VelnoxMessageBanner(
-                        message = error.serverMessage ?: stringResource(R.string.velnox_state_error_body),
+                        message = error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body),
                         tone = VelnoxBannerTone.Error,
                         onDismiss = viewModel::consumeError,
                     )
@@ -277,7 +278,7 @@ private fun DocumentPickerRow(
                             stringResource(R.string.velseller_apply_image_unsupported)
 
                         SellerApplicationViewModel.UploadFailure.Upload ->
-                            stringResource(R.string.velnox_state_error_body)
+                            stringResource(SharedR.string.velnox_state_error_body)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = VelnoxColors.Destructive,

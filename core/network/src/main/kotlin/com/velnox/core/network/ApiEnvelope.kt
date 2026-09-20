@@ -3,7 +3,7 @@ package com.velnox.core.network
 import kotlinx.serialization.Serializable
 
 /**
- * The response envelope every `/api/*` endpoint in the Velnox backend returns.
+ * The response envelope every `/api/...` endpoint in the Velnox backend returns.
  *
  * ```
  * { "success": true,  "data": { ... } }

@@ -46,6 +46,7 @@ import com.velnox.core.ui.component.VelnoxTextField
 import com.velnox.core.ui.theme.PriceTextStyle
 import com.velnox.core.ui.theme.VelnoxColors
 import com.velnox.core.ui.theme.VelnoxTokens
+import com.velnox.core.ui.R as SharedR
 import com.velnox.velseller.R
 import com.velnox.velseller.navigation.VelSellerTabRoutes
 import com.velnox.velseller.navigation.velSellerTabs
@@ -88,7 +89,7 @@ fun ProductsScreen(
                         stringResource(R.string.velseller_product_deleted) to VelnoxBannerTone.Success
 
                     is ProductsViewModel.ProductsNotice.Failure ->
-                        (notice.error.serverMessage ?: stringResource(R.string.velnox_state_error_body)) to
+                        (notice.error.serverMessage ?: stringResource(SharedR.string.velnox_state_error_body)) to
                             VelnoxBannerTone.Error
                 }
                 VelnoxMessageBanner(
@@ -162,7 +163,7 @@ fun ProductsScreen(
             },
             dismissButton = {
                 TextButton(onClick = viewModel::cancelDelete) {
-                    Text(stringResource(R.string.velnox_action_cancel))
+                    Text(stringResource(SharedR.string.velnox_action_cancel))
                 }
             },
         )
@@ -334,12 +335,12 @@ private fun StockDialog(
         },
         confirmButton = {
             TextButton(onClick = { onConfirm(quantity) }) {
-                Text(stringResource(R.string.velnox_action_save))
+                Text(stringResource(SharedR.string.velnox_action_save))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.velnox_action_cancel))
+                Text(stringResource(SharedR.string.velnox_action_cancel))
             }
         },
     )
@@ -357,11 +358,11 @@ private val FILTERABLE_STATUSES = listOf(
 /** Localised label for a product status, from the shared string set. */
 @Composable
 private fun productStatusLabel(status: ProductStatus): String = when (status) {
-    ProductStatus.Draft -> stringResource(R.string.velnox_product_draft)
-    ProductStatus.PendingReview -> stringResource(R.string.velnox_product_pending_review)
-    ProductStatus.Published -> stringResource(R.string.velnox_product_published)
-    ProductStatus.Rejected -> stringResource(R.string.velnox_product_rejected)
-    ProductStatus.Suspended -> stringResource(R.string.velnox_product_suspended)
-    ProductStatus.Archived -> stringResource(R.string.velnox_product_archived)
-    ProductStatus.Unknown -> stringResource(R.string.velnox_product_unknown)
+    ProductStatus.Draft -> stringResource(SharedR.string.velnox_product_draft)
+    ProductStatus.PendingReview -> stringResource(SharedR.string.velnox_product_pending_review)
+    ProductStatus.Published -> stringResource(SharedR.string.velnox_product_published)
+    ProductStatus.Rejected -> stringResource(SharedR.string.velnox_product_rejected)
+    ProductStatus.Suspended -> stringResource(SharedR.string.velnox_product_suspended)
+    ProductStatus.Archived -> stringResource(SharedR.string.velnox_product_archived)
+    ProductStatus.Unknown -> stringResource(SharedR.string.velnox_product_unknown)
 }
