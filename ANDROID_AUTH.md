@@ -93,11 +93,11 @@ Read the fingerprint instead of guessing it:
 ./gradlew :app:velshop:signingReport :app:velseller:signingReport :app:velcenter:signingReport
 ```
 
-CI runs the same task and prints the same report, and the CI one is the one that matters
-for a CI-built APK: a GitHub runner generates `~/.android/debug.keystore` fresh on every
-run, so its SHA-1 is neither the developer machine's nor stable between runs. Pin it with
-the `VELNOX_DEBUG_KEYSTORE_BASE64` secret, which CI writes to `~/.android/debug.keystore`
-before Gradle starts (`ANDROID_BUILD.md` § Signing has the `keytool` command).
+The CI fingerprint is the one that matters for a CI-built APK, and it is **not** the
+developer machine's. Pin it with the `VELNOX_DEBUG_KEYSTORE_BASE64` secret, which CI
+installs at the location AGP actually resolves and then reports the SHA-1 back from
+(`ANDROID_BUILD.md` § Signing has the `keytool` command and explains the path). Without
+the secret every run generates a new debug key, so its SHA-1 has to be registered again.
 
 ### The one backend addition required
 

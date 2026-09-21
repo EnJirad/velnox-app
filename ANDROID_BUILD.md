@@ -88,17 +88,23 @@ committed to a repository is a leaked secret, and a "signed" APK from CI would i
 trust it does not have. Sign the artefact with `apksigner` (or add a properly stored
 GitHub secret and a `signingConfigs` block) at distribution time.
 
-Debug builds use the standard AGP debug signing config, which reads
-`~/.android/debug.keystore`. On a fresh GitHub runner that file does not exist, so it is
-**generated per run** — a new key and a new SHA-1 every time. That matters as soon as
-Google sign-in is involved, because Google matches an Android OAuth client on
-`(package name, certificate SHA-1)`: a fingerprint registered for one run stops matching
-the next. Set the `VELNOX_DEBUG_KEYSTORE_BASE64` secret (base64 of a JKS whose alias is
-`androiddebugkey` and whose store/key password is `android`, the credentials AGP's default
-debug config expects) to pin it; CI then writes that keystore to `~/.android/debug.keystore`
-before Gradle runs and prints the resulting fingerprints with `signingReport`. Without the
-secret the run still succeeds but warns that its debug certificate is not stable. The
-keystore is a real secret, so it lives in a GitHub secret and is never printed.
+Debug builds use AGP's default debug signing config. That config does **not** simply read
+`$HOME/.android/debug.keystore`: AGP's `AndroidLocation` prefers `ANDROID_USER_HOME`, then
+`XDG_CONFIG_HOME` — which a GitHub runner sets to `/home/runner/.config`, so AGP looks in
+`/home/runner/.config/.android` — and only then `$HOME`. Measured with
+`:app:velshop:signingReport` under each combination; with `ANDROID_USER_HOME` set the store
+is `$ANDROID_USER_HOME/debug.keystore` and it wins over `XDG_CONFIG_HOME`. Writing a
+keystore to `$HOME/.android` on CI therefore has no effect at all.
+
+CI sets `ANDROID_USER_HOME` itself and installs the key there, so there is exactly one
+candidate path. Set the `VELNOX_DEBUG_KEYSTORE_BASE64` secret (base64 of a JKS whose alias
+is `androiddebugkey` and whose store/key password is `android`, the credentials AGP's
+debug config expects) to pin the key; otherwise CI generates one, which means a new SHA-1
+on every run. Either way it then reports the SHA-1 of the keystore AGP resolved — read
+back with `keytool`, because AGP 8.7's `signingReport` prints the path but no fingerprints
+— and that is the value an Android OAuth client must be registered against
+(`ANDROID_AUTH.md`). The keystore is a real secret: it lives in a GitHub secret and is
+never printed, only its public certificate fingerprint is.
 
 ## GitHub Actions
 
@@ -106,8 +112,8 @@ keystore is a real secret, so it lives in a GitHub secret and is never printed.
 
 1. checkout · 2. JDK 17 · 3. Android SDK · 4. Gradle · 5. Bun ·
 6. `bun tools/verify-android-config.ts` · 7. dependency restore ·
-8. provision the debug signing keystore · 9. `signingReport` (the SHA-1s an Android OAuth
-client must be registered against) · 10. `testDebugUnitTest` · 11. `lintDebug` ·
+8. provision the debug signing keystore · 9. report the debug signing SHA-1 an Android
+OAuth client must be registered against · 10. `testDebugUnitTest` · 11. `lintDebug` ·
 12. VelShop · 13. Velseller · 14. VelCenter ·
 15. verify the built `core:auth` `BuildConfig` carries a well-formed client id ·
 16. APK verification (existence **and** a minimum size) · 17. rename to
