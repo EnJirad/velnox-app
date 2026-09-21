@@ -57,6 +57,13 @@ Three sources, first match wins, resolved once at configuration time in
 2. `-Pvelnox.api.baseUrl=…` / `-Pvelnox.google.webClientId=…` (what CI passes)
 3. `gradle.properties` (checked-in default)
 
+A **blank** value at any level is treated as "not provided" and falls through to the
+next source, so the checked-in default always survives. That is deliberate rather than
+defensive: CI always passes `-Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID"`,
+and that variable is empty whenever the optional repository variable is unset. Reading
+the three sources through `project.findProperty` cannot express this — it merges them and
+then a blank `-P` erases the default — so each source is read explicitly.
+
 Only two values are ever compiled in, and both are public:
 
 * `velnox.api.baseUrl` → `BuildConfig.VELNOX_API_BASE_URL` (`core:network`, `core:storage`)
@@ -66,6 +73,14 @@ Both already ship in the Velnox web bundles. **No secret is compiled into an APK
 there is no build path that could read `JWT_SECRET`, `DATABASE_URL`, `GOOGLE_CLIENT_SECRET`
 or any R2 key — none of those names exist in this repository.
 
+`velnox.google.webClientId` is set by default, because an empty web client id is exactly
+what makes the app report "sign-in is unavailable". Overriding it per environment is a
+GitHub **repository variable** (`VELNOX_GOOGLE_WEB_CLIENT_ID`), not a secret: an OAuth
+*web* client id is a public identifier — it is visible in the backend's own OAuth redirect
+URL — and the value that must never leave the server is `GOOGLE_CLIENT_SECRET`, which
+this repository forbids outright. See `ANDROID_AUTH.md` for the OAuth client registration
+that goes with it.
+
 ## Signing
 
 Release builds are produced **unsigned**. CI intentionally has no keystore: a keystore
@@ -73,21 +88,44 @@ committed to a repository is a leaked secret, and a "signed" APK from CI would i
 trust it does not have. Sign the artefact with `apksigner` (or add a properly stored
 GitHub secret and a `signingConfigs` block) at distribution time.
 
+Debug builds use the standard AGP debug signing config, which reads
+`~/.android/debug.keystore`. On a fresh GitHub runner that file does not exist, so it is
+**generated per run** — a new key and a new SHA-1 every time. That matters as soon as
+Google sign-in is involved, because Google matches an Android OAuth client on
+`(package name, certificate SHA-1)`: a fingerprint registered for one run stops matching
+the next. Set the `VELNOX_DEBUG_KEYSTORE_BASE64` secret (base64 of a JKS whose alias is
+`androiddebugkey` and whose store/key password is `android`, the credentials AGP's default
+debug config expects) to pin it; CI then writes that keystore to `~/.android/debug.keystore`
+before Gradle runs and prints the resulting fingerprints with `signingReport`. Without the
+secret the run still succeeds but warns that its debug certificate is not stable. The
+keystore is a real secret, so it lives in a GitHub secret and is never printed.
+
 ## GitHub Actions
 
 `.github/workflows/build-android.yml` runs on push, pull request and manually, and does:
 
 1. checkout · 2. JDK 17 · 3. Android SDK · 4. Gradle · 5. Bun ·
 6. `bun tools/verify-android-config.ts` · 7. dependency restore ·
-8. `testDebugUnitTest` · 9. `lintDebug` · 10. VelShop · 11. Velseller · 12. VelCenter ·
-13. APK verification (existence **and** a minimum size) · 14. rename to
-`VelShop.apk` / `Velseller.apk` / `VelCenter.apk` · 15. `velnox-android-release.zip` ·
-16. upload artifact `velnox-android-release`.
+8. provision the debug signing keystore · 9. `signingReport` (the SHA-1s an Android OAuth
+client must be registered against) · 10. `testDebugUnitTest` · 11. `lintDebug` ·
+12. VelShop · 13. Velseller · 14. VelCenter ·
+15. verify the built `core:auth` `BuildConfig` carries a well-formed client id ·
+16. APK verification (existence **and** a minimum size) · 17. rename to
+`VelShop.apk` / `Velseller.apk` / `VelCenter.apk` · 18. `velnox-android-release.zip` ·
+19. upload artifact `velnox-android-release`.
 
-Step 6 runs before the ~40-minute Gradle work on purpose: it catches the three mistakes
-that are cheap to make and expensive to notice — two apps sharing an `applicationId` (one
-APK silently replaces the other on install), a broken version catalog, and a backend
-secret name leaking into shipped source. Running it locally is the same command.
+Step 6 runs before the ~40-minute Gradle work on purpose: it catches the mistakes that are
+cheap to make and expensive to notice — two apps sharing an `applicationId` (one APK
+silently replaces the other on install), a broken version catalog, a backend secret name
+leaking into shipped source, and a Google sign-in configuration that is empty or malformed
+(see `ANDROID_AUTH.md`). Running it locally is the same command.
+
+Step 15 exists because steps 6 and 15 test different things. Step 6 checks the
+configuration Gradle was *given*; step 15 checks what the compiler actually *produced*. A
+property can be read into a Gradle `extra` and still never reach a `buildConfigField`, and
+the failure mode is silent — the APK builds, installs and passes every test, then tells the
+user it cannot sign them in. Step 15 reads the generated `BuildConfig.java`, asserts the
+value is non-empty and well-formed, and never prints it.
 
 ### Failure semantics
 

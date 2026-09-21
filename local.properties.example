@@ -11,6 +11,10 @@ velnox.api.baseUrl=https://velnox-api.onrender.com
 # This is a PUBLIC value (it already ships in the Velnox web bundles) and is
 # used as the `serverClientId` for Credential Manager sign-in so Google issues
 # an ID token whose `aud` matches the backend's GOOGLE_CLIENT_ID.
-# Leave empty to build an app that reports "sign-in not configured" instead of
-# ever falling back to a fake login.
+#
+# Optional: gradle.properties already carries the project's web client id, and an
+# empty value here falls through to it (see gradle/velnox-properties.gradle.kts).
+# Set it only to point a local build at a different Google project. What produces
+# an app that reports "sign-in not configured" is the checked-in default being
+# absent — never a fallback to a fake login.
 velnox.google.webClientId=

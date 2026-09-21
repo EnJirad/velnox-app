@@ -17,6 +17,7 @@ import com.velnox.core.common.coroutines.DispatcherProvider
 import com.velnox.core.common.error.AppError
 import com.velnox.core.logging.VelnoxLog
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,6 +67,13 @@ sealed interface GoogleSignInOutcome {
  * and the UI explains that sign-in is unavailable in this build. It never returns
  * a synthesised identity, never accepts a token it produced itself, and never
  * bypasses the server. Authorization always comes from the backend's response.
+ *
+ * ## Two different cancellations
+ *
+ * Closing the account sheet ([GoogleSignInOutcome.Cancelled]) is a user action and is
+ * reported as such. Coroutine cancellation — the screen going away while the sheet is
+ * open — is not: it is rethrown so the suspending caller is cancelled as usual, and
+ * no outcome is invented for a sign-in the user never abandoned.
  */
 @Singleton
 class NativeGoogleSignIn @Inject constructor(
@@ -127,6 +135,11 @@ class NativeGoogleSignIn @Inject constructor(
                 GoogleSignInOutcome.Failed(
                     AppError.Unexpected(serverMessage = failure.message, cause = failure),
                 )
+            } catch (cancellation: CancellationException) {
+                // Cooperate with the caller's scope. `withContext` is documented to
+                // rethrow cancellation, and swallowing it here would both break that
+                // contract and turn "the user navigated away" into a visible failure.
+                throw cancellation
             } catch (throwable: Throwable) {
                 VelnoxLog.e(TAG) { "Unexpected Google sign-in failure" }
                 GoogleSignInOutcome.Failed(

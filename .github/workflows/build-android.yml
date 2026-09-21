@@ -33,6 +33,14 @@ env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false"
   # Public value. Override with a repository variable if the backend moves.
   VELNOX_API_BASE_URL: ${{ vars.VELNOX_API_BASE_URL || 'https://velnox-api.onrender.com' }}
+  # Public OAuth *web* client id. When the repository variable is unset this is
+  # empty and Gradle falls through to the checked-in default in gradle.properties;
+  # an empty `-P` must never erase that default (see
+  # gradle/velnox-properties.gradle.kts). A web client id is a public identifier,
+  # not a credential, so it is a repository variable rather than a secret — and no
+  # value is written here and none is ever echoed, so this file stays free of
+  # plaintext configuration and of anything that could reach a log.
+  VELNOX_GOOGLE_WEB_CLIENT_ID: ${{ vars.VELNOX_GOOGLE_WEB_CLIENT_ID }}
 
 jobs:
   build:
@@ -103,19 +111,63 @@ jobs:
           set -euo pipefail
           ./gradlew \
             -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
             --no-daemon \
             :core:ui:dependencies :core:data:dependencies \
             > /dev/null
 
+      # Pin the debug signing key before any Gradle work. Google matches an Android
+      # OAuth client on (package name, signing certificate SHA-1), and the runner's
+      # default ~/.android/debug.keystore is generated fresh on every run — so a
+      # CI-built debug APK would present a different certificate each time and the
+      # fingerprint registered in Google Cloud would stop matching on the next run.
+      # Supplying the keystore is what makes the fingerprint stable enough to register
+      # once. `secrets` is read here rather than at workflow level because the context
+      # is only available in step-scoped `env`/`with`/`if`.
+      - name: Provision debug signing keystore
+        env:
+          # Optional, operator-supplied debug signing key (base64 of a JKS). A real
+          # secret, and never printed.
+          VELNOX_DEBUG_KEYSTORE_BASE64: ${{ secrets.VELNOX_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/.android"
+          if [ -n "${VELNOX_DEBUG_KEYSTORE_BASE64:-}" ]; then
+            printf '%s' "$VELNOX_DEBUG_KEYSTORE_BASE64" \
+              | tr -d '\n\r ' \
+              | base64 -d > "$HOME/.android/debug.keystore"
+            test -s "$HOME/.android/debug.keystore"
+            echo "Using the debug keystore supplied as VELNOX_DEBUG_KEYSTORE_BASE64"
+          elif [ -f "$HOME/.android/debug.keystore" ]; then
+            echo "Using the pre-existing debug keystore"
+          else
+            echo "::warning title=Unstable debug certificate::no VELNOX_DEBUG_KEYSTORE_BASE64 was supplied, so this run will generate a new debug key and the SHA-1 printed below will change on the next run. Register the fingerprint of a stable key instead, or supply the secret."
+          fi
+
+      - name: Report debug signing certificate
+        run: |
+          set -euo pipefail
+          # A certificate fingerprint is public by design: it is the value you hand to
+          # Google, not a credential. No keystore password is ever printed.
+          ./gradlew --no-daemon \
+            -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
+            :app:velshop:signingReport :app:velseller:signingReport :app:velcenter:signingReport \
+            | grep -E "Variant:|Config:|Application ID:|Store:|Alias:|SHA1:|SHA-256:" || true
+
       - name: Run unit tests
         run: |
           set -euo pipefail
-          ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" testDebugUnitTest
+          ./gradlew --no-daemon \
+            -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
+            testDebugUnitTest
 
       - name: Run static analysis (lint)
         run: |
           set -euo pipefail
           ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
             lintDebug \
             -Pandroid.lint.abortOnError=true
 
@@ -125,19 +177,53 @@ jobs:
         run: |
           set -euo pipefail
           ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
             :app:velshop:assembleDebug
 
       - name: Assemble Velseller
         run: |
           set -euo pipefail
           ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
             :app:velseller:assembleDebug
 
       - name: Assemble VelCenter
         run: |
           set -euo pipefail
           ./gradlew --no-daemon -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
+            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
             :app:velcenter:assembleDebug
+
+      # What the compiler produced, as opposed to what Gradle was told. These are not
+      # the same test: a property can be read into a Gradle `extra` and still never
+      # reach a `buildConfigField`. Only the generated BuildConfig proves the client id
+      # is in the artefact, and an APK without it can never sign anyone in — it shows
+      # "sign-in is unavailable" instead of failing, so only a check catches it.
+      # Shape is verified; the value is never printed.
+      - name: Verify the build carries a Google client id
+        run: |
+          set -euo pipefail
+
+          build_config="core/auth/build/generated/source/buildConfig/debug/com/velnox/core/auth/BuildConfig.java"
+          if [ ! -f "$build_config" ]; then
+            echo "::error title=Missing BuildConfig::core:auth generated no BuildConfig at $build_config"
+            exit 1
+          fi
+
+          client_id=$(grep -oE 'VELNOX_GOOGLE_WEB_CLIENT_ID = "[^"]*"' "$build_config" \
+            | sed 's/.*= "//; s/"$//')
+
+          if [ -z "$client_id" ]; then
+            echo "::error title=Google sign-in not configured::the built core:auth carries an empty VELNOX_GOOGLE_WEB_CLIENT_ID, so every screen would report that sign-in is unavailable. Set the repository variable VELNOX_GOOGLE_WEB_CLIENT_ID, or restore the default in gradle.properties."
+            exit 1
+          fi
+
+          if ! printf '%s' "$client_id" | grep -qE '^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$'; then
+            echo "::error title=Malformed Google client id::VELNOX_GOOGLE_WEB_CLIENT_ID is not a <project-number>-<hash>.apps.googleusercontent.com value. Check the repository variable and gradle.properties."
+            exit 1
+          fi
+
+          echo "OK  core:auth carries a well-formed Google web client id"
 
       # Explicit verification. `find` returning nothing yields an empty variable and
       # the guard below fails the job — an APK that silently did not appear can never

@@ -59,13 +59,63 @@ Google **ID token**.
 `velnox.google.webClientId` is passed as the Credential Manager `serverClientId`. That
 value is the Velnox *web* client id — a public value that already ships in the web
 bundles — which makes the resulting token's `aud` match the backend's existing
-`GOOGLE_CLIENT_ID`, so **no new OAuth client and no relaxed audience check is needed**.
+`GOOGLE_CLIENT_ID`, so **the backend's audience check needs no change**.
+
+It is configured rather than guessed, and the value was read from the backend itself
+(`GET /auth/google` redirects to Google with `client_id` in the URL — a public value, and
+the same one the server holds in `GOOGLE_CLIENT_ID`):
+
+| Where | What |
+|-------|------|
+| `gradle.properties` | Checked-in default. A blank or missing value is the bug that makes the app report "sign-in is unavailable" — it is never a fallback to a fake login. |
+| `-Pvelnox.google.webClientId=…`, `local.properties` | Per-machine / per-environment override. A **blank** override falls through to the default instead of erasing it (`gradle/velnox-properties.gradle.kts`). |
+| `VELNOX_GOOGLE_WEB_CLIENT_ID` | GitHub **repository variable** for CI. A variable, not a secret: an OAuth web client id is a public identifier. The value that must never leave the server is `GOOGLE_CLIENT_SECRET`, which this repository forbids. |
+
+`tools/verify-android-config.ts` fails the build when the effective client id is empty or
+malformed, and a CI step re-checks the generated `BuildConfig.java`, so a build that
+cannot sign anyone in cannot pass as a successful one.
+
+#### Registering the app with Google
+
+A web client id is only half of the story. Google authorises a native request from the
+**(package name, signing certificate SHA-1)** pair, so each app needs an *Android* OAuth
+client in the same Google Cloud project. Debug builds carry an `applicationIdSuffix`:
+
+| App | Debug package | Release package |
+|-----|---------------|-----------------|
+| VelShop | `com.velnox.velshop.debug` | `com.velnox.velshop` |
+| Velseller | `com.velnox.velseller.debug` | `com.velnox.velseller` |
+| VelCenter | `com.velnox.velcenter.debug` | `com.velnox.velcenter` |
+
+Read the fingerprint instead of guessing it:
+
+```bash
+./gradlew :app:velshop:signingReport :app:velseller:signingReport :app:velcenter:signingReport
+```
+
+CI runs the same task and prints the same report, and the CI one is the one that matters
+for a CI-built APK: a GitHub runner generates `~/.android/debug.keystore` fresh on every
+run, so its SHA-1 is neither the developer machine's nor stable between runs. Pin it with
+the `VELNOX_DEBUG_KEYSTORE_BASE64` secret, which CI writes to `~/.android/debug.keystore`
+before Gradle starts (`ANDROID_BUILD.md` § Signing has the `keytool` command).
 
 ### The one backend addition required
 
+**Status: not implemented, not deployed.** Verified against the live backend rather than
+assumed:
+
+| Request | Live result |
+|---------|-------------|
+| `POST {base}/api/auth/native/google` | `404 Cannot POST /api/auth/native/google` |
+| `GET {base}/auth/google` | `302` to `accounts.google.com` with `client_id=…` — so `GOOGLE_CLIENT_ID` **is** configured server-side |
+| `GET {base}/api/auth/me` | `401` — the auth surface itself is up |
+
 The browser flow finishes server-side because the *code* exchange needs
 `GOOGLE_CLIENT_SECRET`. A native client has an ID token, not a code, so the backend must
-accept it. Add this next to the existing routes in `backend/routes/auth.ts`:
+accept it. `verifyGoogleIdentity` (tokeninfo + `claims.aud === GOOGLE_CLIENT_ID`) and
+`resolveUser` (identity resolution) already do exactly the right thing, so the addition
+reuses both and cannot create a second kind of account. Add this next to the existing
+routes in `backend/routes/auth.ts`:
 
 ```ts
 /**
@@ -132,10 +182,17 @@ res.json({
 Both additions are additive: the cookie is still set, the web flows are untouched, no
 token gets a longer lifetime, and revocation through `revoked_tokens` applies identically.
 
-**Until that patch is deployed, native sign-in reports a configuration error.** The app
-never falls back to a locally minted credential, a hardcoded user, or a bypass — the
-brief forbids all three, and a client that mints its own session is not an
-authentication system.
+**Until that patch is deployed, native sign-in stops at the backend and reports a
+configuration error.** The app never falls back to a locally minted credential, a
+hardcoded user, or a bypass — the brief forbids all three, and a client that mints its
+own session is not an authentication system. The user-visible outcomes are therefore:
+
+| State | What the user sees |
+|-------|--------------------|
+| No client id in the build | "This build has no Google Client ID configured, so sign-in is unavailable" — a build problem, fixed by configuration, not by code |
+| Client id present, backend endpoint absent (`404`) | The account sheet completes, then a normal error message: the server build cannot issue a native session |
+| Client id present, Android OAuth client not registered for this package + SHA-1 | Credential Manager refuses; no token is ever produced |
+| All three in place | Google ID token → backend verifies it → Velnox session |
 
 ## Session lifecycle in the app
 

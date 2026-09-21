@@ -8,7 +8,17 @@
  *     by side, and two identical ids would make an APK silently replace another);
  *  2. every `applicationId` matches the `com.velnox.<app>` convention;
  *  3. the Gradle version catalog parses and every `version.ref` resolves;
- *  4. no backend secret name appears anywhere in the shipped sources.
+ *  4. no backend secret name appears anywhere in the shipped sources;
+ *  5. the Google sign-in configuration is actually usable — a well-formed web
+ *     client id is configured, and the code path that turns it into a Credential
+ *     Manager `serverClientId` and exchanges the resulting ID token with the
+ *     backend is still intact.
+ *
+ * Check 5 exists because its failure mode is silent. An APK with no client id
+ * compiles, installs, passes lint and passes every unit test; it only reports that
+ * sign-in is unavailable once a real user taps the button. Nothing downstream of
+ * this script would notice, so without this check a build that cannot sign anyone
+ * in still reports success.
  *
  * Run: `bun tools/verify-android-config.ts` (also compiled by `tsc -b --noEmit`).
  */
@@ -87,6 +97,60 @@ function walk(directory: string, filter: (path: string) => boolean): string[] {
   return found;
 }
 
+/**
+ * A Google **web** OAuth client id: `<project number>-<hash>.apps.googleusercontent.com`.
+ *
+ * A public identifier, not a credential — it is visible in the OAuth redirect URL
+ * and in the web bundles, and the PKCE/code exchange that would need a secret happens
+ * server-side. Only this shape reaches an APK.
+ */
+const GOOGLE_WEB_CLIENT_ID_PATTERN = /^\d+-[a-z0-9]+\.apps\.googleusercontent\.com$/;
+
+/** Reads one `key=value` entry out of a `.properties` file. */
+function readPropertiesEntry(path: string, key: string): string {
+  for (const line of readFileIfPresent(path).split("\n")) {
+    const trimmed = line.trim();
+    if (trimmed === "" || trimmed.startsWith("#") || trimmed.startsWith("!")) continue;
+    const separator = trimmed.indexOf("=");
+    if (separator === -1) continue;
+    if (trimmed.slice(0, separator).trim() !== key) continue;
+    return trimmed.slice(separator + 1).trim();
+  }
+  return "";
+}
+
+function readFileIfPresent(path: string): string {
+  try {
+    return readFileSync(join(ROOT, path), "utf8");
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * The web client id the build will actually compile in.
+ *
+ * CI passes `-Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID"`, so a
+ * non-blank environment value wins and anything else falls through to the checked-in
+ * default — the same order `gradle/velnox-properties.gradle.kts` implements.
+ */
+function effectiveGoogleWebClientId(): string {
+  const fromEnvironment = process.env.VELNOX_GOOGLE_WEB_CLIENT_ID?.trim() ?? "";
+  return fromEnvironment !== ""
+    ? fromEnvironment
+    : readPropertiesEntry("gradle.properties", "velnox.google.webClientId");
+}
+
+/** Records a violation when a required file is missing or stops matching `pattern`. */
+function expectMatch(path: string, pattern: RegExp, description: string, violations: string[]): void {
+  const source = readFileIfPresent(path);
+  if (source === "") {
+    violations.push(`${path} is missing`);
+    return;
+  }
+  if (!pattern.test(source)) violations.push(`${path}: ${description}`);
+}
+
 function readApplicationIds(): Map<string, string> {
   const ids = new Map<string, string>();
   for (const file of walk(join(ROOT, "app"), (path) => path.endsWith("build.gradle.kts"))) {
@@ -135,6 +199,64 @@ function collectViolations(): string[] {
     }
   }
 
+  // ── Google sign-in must actually be usable ──────────────────────────────────
+  // The most likely cause of "sign-in does not work" is configuration rather than
+  // code, so configuration is checked first. The value itself is never printed.
+  const googleWebClientId = effectiveGoogleWebClientId();
+  if (googleWebClientId === "") {
+    violations.push(
+      "Google sign-in is not configured: gradle.properties has no velnox.google.webClientId " +
+        "and VELNOX_GOOGLE_WEB_CLIENT_ID is unset, so every build would report that sign-in is unavailable",
+    );
+  } else if (!GOOGLE_WEB_CLIENT_ID_PATTERN.test(googleWebClientId)) {
+    violations.push(
+      "the effective Google web client id is not a <project-number>-<hash>.apps.googleusercontent.com value",
+    );
+  }
+
+  expectMatch(
+    "core/auth/build.gradle.kts",
+    /buildConfigField\(\s*"String"\s*,\s*"VELNOX_GOOGLE_WEB_CLIENT_ID"/,
+    "no longer compiles velnox.google.webClientId into BuildConfig.VELNOX_GOOGLE_WEB_CLIENT_ID",
+    violations,
+  );
+
+  expectMatch(
+    "core/auth/src/main/kotlin/com/velnox/core/auth/signin/NativeGoogleSignIn.kt",
+    /setServerClientId\(\s*webClientId\s*\)/,
+    "no longer passes the web client id as the Credential Manager serverClientId, so the " +
+      "returned token's aud would not match the backend's GOOGLE_CLIENT_ID",
+    violations,
+  );
+
+  expectMatch(
+    "core/auth/src/main/kotlin/com/velnox/core/auth/api/VelnoxAuthApi.kt",
+    /@POST\("auth\/native\/google"\)/,
+    "no longer declares POST auth/native/google, the backend contract a native Google ID token is exchanged on",
+    violations,
+  );
+
+  // The client id belongs in gradle.properties (the public checked-in default) or in
+  // the VELNOX_GOOGLE_WEB_CLIENT_ID repository variable. A literal in the workflow is
+  // the kind of duplicate that silently drifts from the real project.
+  const workflow = stripComments(readFileIfPresent(".github/workflows/build-android.yml"));
+  if (workflow === "") {
+    violations.push(".github/workflows/build-android.yml is missing");
+  } else {
+    if (/\d+-[a-z0-9]+\.apps\.googleusercontent\.com/.test(workflow)) {
+      violations.push(
+        ".github/workflows/build-android.yml hardcodes a Google client id; it must come from " +
+          "gradle.properties or the VELNOX_GOOGLE_WEB_CLIENT_ID repository variable",
+      );
+    }
+    if (!workflow.includes("-Pvelnox.google.webClientId")) {
+      violations.push(
+        ".github/workflows/build-android.yml does not pass -Pvelnox.google.webClientId, " +
+          "so CI-built APKs would carry no client id unless the checked-in default covers it",
+      );
+    }
+  }
+
   return violations;
 }
 
@@ -160,3 +282,4 @@ console.log("Velnox Android configuration check passed.");
 console.log("  · version catalog resolves");
 console.log("  · applicationIds unique and namespaced");
 console.log("  · no backend secret names in shipped sources");
+console.log("  · Google sign-in configured, serverClientId wired, native/google contract present");
