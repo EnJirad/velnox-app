@@ -94,10 +94,30 @@ Read the fingerprint instead of guessing it:
 ```
 
 The CI fingerprint is the one that matters for a CI-built APK, and it is **not** the
-developer machine's. Pin it with the `VELNOX_DEBUG_KEYSTORE_BASE64` secret, which CI
-installs at the location AGP actually resolves and then reports the SHA-1 back from
-(`ANDROID_BUILD.md` § Signing has the `keytool` command and explains the path). Without
-the secret every run generates a new debug key, so its SHA-1 has to be registered again.
+developer machine's. A runner starts with no debug keystore and creates one, so an
+unpinned build produces a new SHA-1 on every run and the Google registration goes stale
+immediately. Pin it once:
+
+```bash
+keytool -genkeypair -keystore velnox-debug.keystore \
+  -alias androiddebugkey -storepass android -keypass android \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -dname "CN=Android Debug,O=Android,C=US"
+
+base64 -w0 velnox-debug.keystore   # add the output as the VELNOX_DEBUG_KEYSTORE_BASE64 secret
+```
+
+That is the same shape AGP generates, so the debug signing configuration is unchanged —
+the key simply stops rotating. CI installs it at the location AGP actually resolves and
+reports the SHA-1 from the `Report debug signing certificate` step (`ANDROID_BUILD.md`
+§ Signing has the path, and why `$HOME/.android` is the wrong one to write to); when the
+secret is absent CI emits a warning naming it explicitly.
+
+Register **six** Android OAuth clients in the Velnox Google Cloud project — the three
+debug packages above and the three release ones — each carrying the SHA-1 CI printed.
+Without them Google issues no credential to the app at all, and Credential Manager
+reports that refusal as "no account on the device", which is why this step is not
+optional and why the message alone cannot tell you it is the cause.
 
 ### The one backend addition required
 
