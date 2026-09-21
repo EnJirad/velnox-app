@@ -96,19 +96,25 @@ class AuthRepository @Inject constructor(
     /**
      * Completes native Google sign-in.
      *
-     * [idToken] comes from Credential Manager. The backend verifies it against
-     * Google's token-info endpoint with the same audience check the browser flow
-     * uses. If no session token comes back, the deployment has not been updated with
-     * the native support in `ANDROID_AUTH.md` — reported as a configuration error,
-     * never worked around with a locally minted credential.
+     * [idToken] comes from Credential Manager, together with the [nonce] requested when
+     * it was minted. The backend verifies the token against Google's token-info endpoint
+     * with the same audience check the browser flow uses, and rejects it unless its
+     * `nonce` claim matches [nonce] — so a token captured from another context cannot be
+     * turned into a Velnox session.
+     *
+     * If no session token comes back, the deployment has not been updated with the
+     * native support in `ANDROID_AUTH.md` — reported as a configuration error, never
+     * worked around with a locally minted credential.
      */
-    suspend fun signInWithGoogleIdToken(idToken: String): VelnoxResult<VelnoxUser> {
-        if (idToken.isBlank()) {
-            return VelnoxResult.Failure(AppError.Validation(serverMessage = "Missing Google ID token."))
+    suspend fun signInWithGoogleIdToken(idToken: String, nonce: String): VelnoxResult<VelnoxUser> {
+        if (idToken.isBlank() || nonce.isBlank()) {
+            return VelnoxResult.Failure(
+                AppError.Validation(serverMessage = "Missing Google ID token or nonce."),
+            )
         }
 
         val response = safeApiCall(json) {
-            api.signInWithGoogleIdToken(NativeGoogleLoginRequest(idToken = idToken))
+            api.signInWithGoogleIdToken(NativeGoogleLoginRequest(idToken = idToken, nonce = nonce))
         }
 
         return when (response) {

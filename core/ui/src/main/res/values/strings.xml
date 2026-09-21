@@ -39,7 +39,9 @@
     <string name="velnox_auth_sign_in_subtitle">ใช้บัญชี Google ของคุณเพื่อเริ่มต้นใช้งาน</string>
     <string name="velnox_auth_not_configured">บิลด์นี้ยังไม่ได้ตั้งค่า Google Client ID จึงยังเข้าสู่ระบบไม่ได้</string>
     <string name="velnox_auth_cancelled">ยกเลิกการเข้าสู่ระบบแล้ว</string>
-    <string name="velnox_auth_no_account">ไม่พบบัญชี Google ในอุปกรณ์นี้</string>
+    <string name="velnox_auth_no_credential">Google ไม่ได้ส่งบัญชีที่ใช้ได้กลับมา ตรวจสอบว่าอุปกรณ์มีบัญชี Google และบิลด์นี้ลงทะเบียนชื่อแพ็กเกจกับลายเซ็น (SHA-1) ไว้กับ Google แล้ว</string>
+    <string name="velnox_auth_provider_unavailable">Google Play services ไม่พร้อมใช้งานหรือเป็นเวอร์ชันเก่าบนอุปกรณ์นี้</string>
+    <string name="velnox_auth_token_unusable">ได้รับข้อมูลจาก Google แล้ว แต่ไม่สามารถอ่าน Google ID token ได้</string>
     <string name="velnox_auth_session_unverified_title">ยังตรวจสอบเซสชันไม่ได้</string>
     <string name="velnox_auth_session_unverified_body">เราเก็บเซสชันของคุณไว้แล้ว แต่ยังติดต่อเซิร์ฟเวอร์ไม่ได้ กรุณาลองใหม่</string>
     <string name="velnox_auth_signed_out_elsewhere">เซสชันสิ้นสุดแล้ว กรุณาเข้าสู่ระบบอีกครั้ง</string>

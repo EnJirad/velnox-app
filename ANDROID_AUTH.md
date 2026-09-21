@@ -101,8 +101,37 @@ the secret every run generates a new debug key, so its SHA-1 has to be registere
 
 ### The one backend addition required
 
-**Status: not implemented, not deployed.** Verified against the live backend rather than
-assumed:
+**Status: implemented in source, not deployed.** Verified against the live backend rather
+than assumed — the endpoint answers `404` on the live deployment, so it starts working
+only once the backend change below is deployed. It exists and passes `tsc --noEmit` and
+`bun test backend/tests` in `EnJirad/velnox-marketplace`, delivered as:
+
+```
+patches/velnox-marketplace-0001-native-google-signin.patch
+```
+
+The patch could not be pushed from this workspace — the managed GitHub credential is
+scoped to `velnox-app` and GitHub answered `403 Permission to EnJirad/velnox-marketplace
+.git denied`. Apply it with:
+
+```bash
+git -C <velnox-marketplace> am patches/velnox-marketplace-0001-native-google-signin.patch
+git -C <velnox-marketplace> push origin main
+```
+
+The contract it implements, and the claim checks that make it safe:
+
+| | |
+|---|---|
+| Request | `POST {base}/api/auth/native/google` · body `{ idToken, nonce, platform? }` |
+| `nonce` | **Required.** The value the app requested; Google echoes it into the token's `nonce` claim. A missing or mismatched nonce is refused. |
+| Response | `{ success: true, data: { token, expiresInSeconds, user } }` — `token` is the same JWT the browser receives in the `velnox_session` cookie, which the endpoint also sets. |
+| Rejections | `400 VALIDATION_ERROR` · `401 INVALID_GOOGLE_TOKEN` / `GOOGLE_AUDIENCE_MISMATCH` / `GOOGLE_ISSUER_MISMATCH` / `GOOGLE_TOKEN_EXPIRED` / `GOOGLE_NONCE_MISMATCH` · `403 ACCOUNT_DISABLED` · `500 DB_ERROR` |
+
+Verified on every request: signature (`tokeninfo`, against Google's published keys),
+audience (`aud === GOOGLE_CLIENT_ID`), issuer (`accounts.google.com`), expiry (explicitly,
+not inferred from `tokeninfo`'s status code) and the nonce. Identity is then resolved by
+the same transactional `resolveUser`, so account linking is unchanged.
 
 | Request | Live result |
 |---------|-------------|
@@ -114,8 +143,11 @@ The browser flow finishes server-side because the *code* exchange needs
 `GOOGLE_CLIENT_SECRET`. A native client has an ID token, not a code, so the backend must
 accept it. `verifyGoogleIdentity` (tokeninfo + `claims.aud === GOOGLE_CLIENT_ID`) and
 `resolveUser` (identity resolution) already do exactly the right thing, so the addition
-reuses both and cannot create a second kind of account. Add this next to the existing
-routes in `backend/routes/auth.ts`:
+reuses both and cannot create a second kind of account. The sketch below is the original
+shape of the addition; the shipped patch is stricter than it (it adds the issuer, expiry
+and nonce checks, the coded `GoogleTokenError`, and the required `nonce` field) and is the
+one to apply. For reference, it sits next to the existing routes in
+`backend/routes/auth.ts`:
 
 ```ts
 /**

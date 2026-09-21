@@ -31,11 +31,20 @@ class AuthViewModel @Inject constructor(
     private val nativeGoogleSignIn: NativeGoogleSignIn,
 ) : ViewModel() {
 
-    /** Transient messages, consumed once by the UI. */
+    /**
+     * Transient messages, consumed once by the UI.
+     *
+     * One case per distinguishable outcome. A single "Google failed" message would be
+     * wrong for at least two of them, and the two it would conflate — no credential
+     * versus no provider — have nothing in common: one is fixed in the Google Cloud
+     * project, the other on the device.
+     */
     sealed interface Message {
         data object GoogleSignInCancelled : Message
         data object GoogleNotConfigured : Message
-        data object NoGoogleAccount : Message
+        data object GoogleNoCredential : Message
+        data object GoogleProviderUnavailable : Message
+        data object GoogleTokenUnusable : Message
         data class Failure(val error: AppError) : Message
     }
 
@@ -64,7 +73,13 @@ class AuthViewModel @Inject constructor(
             try {
                 when (val outcome = nativeGoogleSignIn.requestIdToken(activity)) {
                     is GoogleSignInOutcome.IdTokenObtained -> {
-                        when (val result = authRepository.signInWithGoogleIdToken(outcome.idToken)) {
+                        // The nonce goes with the token: the backend rejects a token whose
+                        // `nonce` claim is not this attempt's value.
+                        val result = authRepository.signInWithGoogleIdToken(
+                            idToken = outcome.idToken,
+                            nonce = outcome.nonce,
+                        )
+                        when (result) {
                             is VelnoxResult.Success -> Unit // authState now emits Authenticated
                             is VelnoxResult.Failure -> _message.value = Message.Failure(result.error)
                         }
@@ -72,7 +87,12 @@ class AuthViewModel @Inject constructor(
 
                     GoogleSignInOutcome.Cancelled -> _message.value = Message.GoogleSignInCancelled
                     GoogleSignInOutcome.NotConfigured -> _message.value = Message.GoogleNotConfigured
-                    GoogleSignInOutcome.NoAccountOnDevice -> _message.value = Message.NoGoogleAccount
+                    GoogleSignInOutcome.NoCredentialAvailable ->
+                        _message.value = Message.GoogleNoCredential
+                    GoogleSignInOutcome.ProviderUnavailable ->
+                        _message.value = Message.GoogleProviderUnavailable
+                    is GoogleSignInOutcome.TokenUnusable ->
+                        _message.value = Message.GoogleTokenUnusable
                     is GoogleSignInOutcome.Failed -> _message.value = Message.Failure(outcome.error)
                 }
             } finally {

@@ -40,6 +40,15 @@ data class MeDataDto(val user: UserDto)
 @Serializable
 data class NativeGoogleLoginRequest(
     val idToken: String,
+    /**
+     * The OIDC nonce requested when the token was minted.
+     *
+     * Google echoes it into the token's `nonce` claim, so the backend rejects a token
+     * whose claim does not match this value. Required: the endpoint refuses a request
+     * without one, because a nonce is what stops an ID token captured elsewhere from
+     * being replayed into a Velnox session.
+     */
+    val nonce: String,
     /** Optional convenience hint; the backend resolves identity itself. */
     val platform: String = "android",
 )

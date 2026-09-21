@@ -236,6 +236,38 @@ function collectViolations(): string[] {
     violations,
   );
 
+  expectMatch(
+    "core/auth/src/main/kotlin/com/velnox/core/auth/signin/NativeGoogleSignIn.kt",
+    /\.setNonce\(nonce\)/,
+    "no longer sets an OIDC nonce on the credential request, so a Google ID token would not be bound to the sign-in attempt",
+    violations,
+  );
+
+  expectMatch(
+    "core/auth/src/main/kotlin/com/velnox/core/auth/signin/NativeGoogleSignIn.kt",
+    /\.setFilterByAuthorizedAccounts\(false\)/,
+    "no longer disables the authorized-accounts filter, which makes Google return nothing on a first sign-in",
+    violations,
+  );
+
+  expectMatch(
+    "core/auth/src/main/kotlin/com/velnox/core/auth/repository/AuthRepository.kt",
+    /NativeGoogleLoginRequest\(idToken = idToken, nonce = nonce\)/,
+    "no longer sends the nonce with the ID token, so the backend could not confirm the token was minted for this attempt",
+    violations,
+  );
+
+  // A CI debug APK is signed by whatever key the runner happened to generate. If that
+  // path is not pinned, the certificate — and therefore the SHA-1 an Android OAuth
+  // client must be registered against — changes on every run, and Google sign-in cannot
+  // work on a CI build at all.
+  expectMatch(
+    ".github/workflows/build-android.yml",
+    /ANDROID_USER_HOME=/,
+    "no longer pins ANDROID_USER_HOME, so the debug keystore would be provisioned to a path AGP does not resolve and each run would sign with a different key",
+    violations,
+  );
+
   // The client id belongs in gradle.properties (the public checked-in default) or in
   // the VELNOX_GOOGLE_WEB_CLIENT_ID repository variable. A literal in the workflow is
   // the kind of duplicate that silently drifts from the real project.

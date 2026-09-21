@@ -1,0 +1,364 @@
+From 7c8d1c580fcc7639f55e8c72674a5b712a257b4a Mon Sep 17 00:00:00 2001
+From: Velnox AI <noreply@codebuff.com>
+Date: Mon, 21 Sep 2026 00:57:29 +0000
+Subject: [PATCH] feat(auth): accept native Google ID tokens from the Android
+ clients
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The Android apps cannot use the browser OAuth flow — a Custom Tab cannot hand
+cookies back to the app and an embedded WebView is blocked by Google — so they
+get a Google ID token from Credential Manager and need somewhere to exchange it.
+
+POST /api/auth/native/google reuses verifyGoogleIdentity and resolveUser
+unchanged, so identity resolution stays the single implementation: Google's
+stable sub first, normalised email second, create only if neither exists. One
+person still maps to one user row, and the response carries the same JWT the
+browser gets in the velnox_session cookie — set as that cookie too, so per-user
+rate limiting and the WebSocket handshake treat a native session identically.
+
+verifyGoogleIdentity previously checked only the audience, which a valid
+signature does not imply: it now also checks issuer, expiry explicitly rather
+than inferring it from tokeninfo's status code, and an optional nonce, and
+throws a coded GoogleTokenError so the route can answer 401 with a reason the
+client can act on instead of a generic failure. The browser callback passes no
+nonce and is otherwise unaffected.
+
+member-login now also returns its token in the body: the web client ignores it,
+but without it the Android VelCenter sign-in received a session it could not see.
+
+No schema change — the nonce is checked against the token's own claim.
+---
+ AI_Handoff.md          |  39 ++++++++-
+ backend/routes/auth.ts | 184 ++++++++++++++++++++++++++++++++++++++---
+ docs/ai/AUTH.md        |  14 +++-
+ 3 files changed, 224 insertions(+), 13 deletions(-)
+
+diff --git a/AI_Handoff.md b/AI_Handoff.md
+index 7e4a893..935b138 100644
+--- a/AI_Handoff.md
++++ b/AI_Handoff.md
+@@ -1,6 +1,6 @@
+ # Velnox AI Handoff
+ 
+-**Last updated:** 2026-09-18 (gaps closed: staff.manage read path · realtime dead ends · silent empty states)
++**Last updated:** 2026-09-21 (Android native Google sign-in endpoint added; Google ID-token verification hardened)
+ **Branch:** `main`
+ 
+ ## Current Project State
+@@ -1730,3 +1730,40 @@ WebSocket event is a signal, never data. No `setTimeout` fake-realtime anywhere.
+ `apps/velcenter/src/lib/center-events.ts` · `backend/routes/center.ts` ·
+ `packages/shared/src/lib/api-routes.ts` · `backend/tests/center-rbac.test.ts` ·
+ `backend/tests/center-admin-audit.test.ts`.
++
++## Native Google Sign-In for Android clients (2026-09-21)
++
++`POST /api/auth/native/google` — added. The Android apps (`EnJirad/velnox-app`) cannot
++use the browser OAuth flow (a Custom Tab cannot hand back cookies; an embedded WebView is
++blocked by Google), so they obtain a Google ID token via Credential Manager and exchange
++it here.
++
++- **Reuses** `verifyGoogleIdentity` and `resolveUser` verbatim — no second identity
++  resolution path, so `auth_identities (provider, provider_id)` → normalised `users.email`
++  → create still holds: one person, one row, no duplicate accounts.
++- Responds with the same JWT the browser receives in the `velnox_session` cookie, **and**
++  returns it in the body (`data.token`) because a native client stores it itself.
++- `setSessionCookie` is called too, so per-user rate limiting and the WebSocket handshake
++  see a native session exactly as they see a browser one.
++
++`verifyGoogleIdentity` was hardened to check every claim it relies on rather than only the
++audience: signature via `tokeninfo`, **audience** (`aud === GOOGLE_CLIENT_ID`), **issuer**
++(`accounts.google.com` / `https://accounts.google.com`), **expiry** (explicit, not inferred
++from `tokeninfo`'s status code) and an optional **nonce** echoed by Google. Rejections now
++throw `GoogleTokenError` with a code (`INVALID_GOOGLE_TOKEN`, `GOOGLE_AUDIENCE_MISMATCH`,
++`GOOGLE_ISSUER_MISMATCH`, `GOOGLE_TOKEN_EXPIRED`, `GOOGLE_NONCE_MISMATCH`) which the route
++returns as 401 + that code, so the client can tell a bad token from a server fault. The
++browser callback passes no nonce and is otherwise unchanged.
++
++`POST /api/auth/member-login` now also returns `token` + `expiresInSeconds` in its body.
++The web client ignores them and keeps using the cookie; without them the Android VelCenter
++sign-in received a valid session it could not see.
++
++**No schema change** — the nonce is verified against the token's own claim, not stored, so
++`db/schema.sql` and `db/run-sqleditor.sql` are untouched and remain byte-identical.
++
++### Not verified here
++
++No deployment. The endpoint exists in source and passes `tsc --noEmit` plus
++`bun test backend/tests` (351 pass / 0 fail), but it is **not live** until this is
++deployed to Render and `GOOGLE_CLIENT_ID` matches the client id the Android build embeds.
+diff --git a/backend/routes/auth.ts b/backend/routes/auth.ts
+index 35f67fc..f39558c 100644
+--- a/backend/routes/auth.ts
++++ b/backend/routes/auth.ts
+@@ -24,6 +24,8 @@ const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
+ const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI ?? "";
+ const JWT_SECRET = process.env.JWT_SECRET ?? "";
+ const SESSION_COOKIE = "velnox_session";
++/** Session lifetime: 7 days. Shared by the JWT, the cookie and the login body. */
++const SESSION_TTL_SECONDS = 7 * 24 * 60 * 60;
+ import crypto from "crypto";
+ 
+ // ─── Per-user profile cache (5s TTL) ───────────────────────────────────────
+@@ -75,32 +77,94 @@ async function exchangeCode(code: string): Promise<{
+   return res.json() as Promise<{ access_token: string; id_token: string }>;
+ }
+ 
+-/** Verify Google ID token and extract claims. */
+-async function verifyGoogleIdentity(idToken: string): Promise<{
++/**
++ * A rejected Google ID token, tagged with a machine-readable code.
++ *
++ * The code travels back to the client so an Android build can tell "this token was
++ * minted for a different audience" apart from "the server is misconfigured", instead of
++ * string-matching an English message.
++ */
++class GoogleTokenError extends Error {
++  constructor(
++    readonly code: string,
++    message: string,
++  ) {
++    super(message);
++    this.name = "GoogleTokenError";
++  }
++}
++
++/** The only `iss` values Google puts in an ID token. */
++const GOOGLE_ISSUERS = new Set(["accounts.google.com", "https://accounts.google.com"]);
++
++/**
++ * Verify a Google ID token and extract its claims.
++ *
++ * `tokeninfo` performs the signature check against Google's published keys, so this
++ * builds on it rather than re-implementing JWKS verification. Every claim the token
++ * *asserts* is still checked here, because a valid signature only proves Google minted
++ * it — not that it was minted for this application, for an unexpired moment, or for this
++ * particular sign-in attempt.
++ *
++ * @param expectedNonce when given, the token must carry a matching `nonce` claim.
++ */
++async function verifyGoogleIdentity(
++  idToken: string,
++  expectedNonce?: string,
++): Promise<{
+   sub: string;
+   email: string;
+   name: string;
+   picture: string;
++  nonce: string;
+ }> {
+   // Use Google's tokeninfo endpoint for verification
+   const res = await fetch(
+     `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`
+   );
+   if (!res.ok) {
+-    throw new Error("Invalid Google ID token");
++    // Also the path a malformed or already-expired token takes: tokeninfo answers non-200.
++    throw new GoogleTokenError("INVALID_GOOGLE_TOKEN", "Invalid Google ID token");
+   }
+   const claims = (await res.json()) as {
+-    sub: string;
+-    email: string;
+-    name: string;
+-    picture: string;
+-    aud: string;
+-    exp: string;
++    sub?: string;
++    email?: string;
++    name?: string;
++    picture?: string;
++    aud?: string;
++    iss?: string;
++    exp?: string;
++    nonce?: string;
+   };
+ 
++  if (!claims.sub) {
++    throw new GoogleTokenError("INVALID_GOOGLE_TOKEN", "Google ID token has no subject");
++  }
++
+   // Verify audience matches our client ID
+   if (claims.aud !== GOOGLE_CLIENT_ID) {
+-    throw new Error("Token audience mismatch");
++    throw new GoogleTokenError("GOOGLE_AUDIENCE_MISMATCH", "Token audience mismatch");
++  }
++
++  // Issuer must be Google itself.
++  if (!claims.iss || !GOOGLE_ISSUERS.has(claims.iss)) {
++    throw new GoogleTokenError("GOOGLE_ISSUER_MISMATCH", "Token issuer mismatch");
++  }
++
++  // Expiry, checked explicitly rather than inferred from tokeninfo's status code.
++  const expiresAtSeconds = Number(claims.exp);
++  if (!Number.isFinite(expiresAtSeconds) || expiresAtSeconds * 1000 <= Date.now()) {
++    throw new GoogleTokenError("GOOGLE_TOKEN_EXPIRED", "Google ID token has expired");
++  }
++
++  // Replay protection: the token must be the one minted for this attempt.
++  if (expectedNonce !== undefined && claims.nonce !== expectedNonce) {
++    throw new GoogleTokenError("GOOGLE_NONCE_MISMATCH", "Google ID token nonce mismatch");
++  }
++
++  // `resolveUser` keys on this address, so reject before touching the database.
++  if (!claims.email) {
++    throw new GoogleTokenError("INVALID_GOOGLE_TOKEN", "Google ID token has no email");
+   }
+ 
+   return {
+@@ -108,6 +172,7 @@ async function verifyGoogleIdentity(idToken: string): Promise<{
+     email: normalizeEmail(claims.email),
+     name: claims.name || "",
+     picture: claims.picture || "",
++    nonce: claims.nonce || "",
+   };
+ }
+ 
+@@ -242,7 +307,7 @@ function setSessionCookie(res: Response, token: string): void {
+     httpOnly: true,
+     secure: isProd,
+     sameSite: "none",
+-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
++    maxAge: SESSION_TTL_SECONDS * 1000,
+     path: "/",
+   });
+ }
+@@ -332,6 +397,11 @@ export function setupGoogleAuth(app: Express): void {
+           name: userRow.name,
+           role: userRow.role,
+           department: userRow.department,
++          // The web client ignores these and keeps using the cookie; a native client has
++          // no cookie jar shared with the browser and stores the token itself. Without
++          // this the Android VelCenter sign-in receives a valid session it cannot see.
++          token: sessionToken,
++          expiresInSeconds: SESSION_TTL_SECONDS,
+         },
+       });
+     } catch (err: any) {
+@@ -495,6 +565,98 @@ export function setupGoogleAuth(app: Express): void {
+     }
+   });
+ 
++  /**
++   * POST /api/auth/native/google — exchange an on-device Google ID token for a Velnox
++   * session.
++   *
++   * The Android clients cannot use the browser flow: a Custom Tab cannot hand its
++   * cookies back to the app, and an embedded WebView is both prohibited by this
++   * project's rules and blocked by Google. Credential Manager hands the app a Google ID
++   * token instead, and this endpoint accepts it.
++   *
++   * It reuses `verifyGoogleIdentity` and `resolveUser` unchanged, so identity resolution
++   * — and therefore account linking — is identical to the browser flow: one person is
++   * still one user row, matched on Google's stable `sub` first and the normalised email
++   * second. The `velnox_session` cookie is set exactly as the browser receives it, and
++   * the same JWT is returned in the body for a client that stores it itself. No second
++   * kind of credential is issued, and no token lifetime is lengthened.
++   */
++  app.post("/api/auth/native/google", async (req: Request, res: Response) => {
++    try {
++      const idToken = typeof req.body?.idToken === "string" ? req.body.idToken.trim() : "";
++      const nonce = typeof req.body?.nonce === "string" ? req.body.nonce.trim() : "";
++
++      if (!idToken || !nonce) {
++        res.status(400).json({
++          success: false,
++          error: { code: "VALIDATION_ERROR", message: "idToken and nonce are required" },
++        });
++        return;
++      }
++
++      // Signature, audience, issuer, expiry and nonce all happen inside this call.
++      const googleUser = await verifyGoogleIdentity(idToken, nonce);
++      const { userId, isNew } = await resolveUser(googleUser);
++
++      const userResult = await query(
++        `SELECT id, email, name, avatar, role, status, department, must_change_password
++         FROM users WHERE id = $1`,
++        [userId],
++      );
++      const u = userResult.rows[0];
++
++      if (!u) {
++        res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: "User not found" } });
++        return;
++      }
++
++      if (u.status !== "active") {
++        res.status(403).json({
++          success: false,
++          error: { code: "ACCOUNT_DISABLED", message: "Account is disabled" },
++        });
++        return;
++      }
++
++      const sessionToken = createSessionToken(u.id, u.email);
++      // Same cookie as the browser flow, so anything server-side that reads
++      // `velnox_session` — per-user rate limiting, the WebSocket handshake — treats a
++      // native session identically instead of falling back to the anonymous budget.
++      setSessionCookie(res, sessionToken);
++
++      console.log(
++        `[auth] native google success: ${u.email} (${u.role})${isNew ? " [new user]" : ""}`,
++      );
++
++      res.json({
++        success: true,
++        data: {
++          token: sessionToken,
++          expiresInSeconds: SESSION_TTL_SECONDS,
++          user: {
++            id: u.id,
++            email: u.email,
++            name: u.name,
++            avatar: u.avatar,
++            role: u.role,
++            status: u.status,
++            department: u.department ?? null,
++            mustChangePassword: u.must_change_password === true,
++          },
++        },
++      });
++    } catch (err: any) {
++      if (err instanceof GoogleTokenError) {
++        // A rejected token is the client's problem, not a server fault.
++        console.warn(`[auth] native google rejected: ${err.code}`);
++        res.status(401).json({ success: false, error: { code: err.code, message: err.message } });
++        return;
++      }
++      console.error("[auth] native google error:", err?.message || err);
++      res.status(500).json({ success: false, error: { code: "DB_ERROR", message: "Login failed" } });
++    }
++  });
++
+   // API endpoint: get current user (for frontend to check auth status)
+   app.get("/api/auth/me", async (req: Request, res: Response) => {
+     const token = req.cookies?.[SESSION_COOKIE];
+diff --git a/docs/ai/AUTH.md b/docs/ai/AUTH.md
+index e2ea697..0d8ab73 100644
+--- a/docs/ai/AUTH.md
++++ b/docs/ai/AUTH.md
+@@ -6,7 +6,19 @@ Google OAuth + JWT httpOnly session cookies. Backend is the gatekeeper.
+ 
+ ## Source Locations
+ 
+-- `backend/routes/auth.ts` — `GET /auth/google`, `GET /auth/google/callback`, `GET /api/auth/me`, `POST /api/auth/logout`
++- `backend/routes/auth.ts` — `GET /auth/google`, `GET /auth/google/callback`, `POST /api/auth/native/google`, `POST /api/auth/member-login`, `GET /api/auth/me`, `POST /api/auth/logout`, `POST /api/auth/change-password`
++
++### Native clients (Android)
++
++A Custom Tab cannot hand its cookies back to an app and an embedded WebView is
++blocked by Google, so the Android clients obtain a **Google ID token** through
++Credential Manager and post it to `POST /api/auth/native/google` with the OIDC
++`nonce` they requested. That endpoint reuses `verifyGoogleIdentity` and
++`resolveUser` unchanged, so identity resolution — and therefore account linking —
++is identical to the browser flow, then returns the same JWT the cookie carries.
++`verifyGoogleIdentity` checks signature (tokeninfo), audience, issuer, expiry and
++the nonce, and refuses a request without one. `member-login` also returns its
++token in the body for the same reason.
+ - `backend/middleware/auth.ts` — `requireAuth`, `optionalAuth`, JWT verify, `revoked_tokens` check (in-memory `revokedJTIs` set + DB fallback)
+ - `backend/db/index.ts` — `revoked_tokens` table
+ - `packages/shared/src/hooks/use-auth.ts`, `packages/shared/src/components/RequireAuth.tsx`, `packages/shared/src/components/RequireRole.tsx` — frontend auth state
+-- 
+2.34.1
+

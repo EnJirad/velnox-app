@@ -82,8 +82,12 @@ fun VelnoxAuthScreen(
                 context.getString(R.string.velnox_auth_cancelled)
             AuthViewModel.Message.GoogleNotConfigured ->
                 context.getString(R.string.velnox_auth_not_configured)
-            AuthViewModel.Message.NoGoogleAccount ->
-                context.getString(R.string.velnox_auth_no_account)
+            AuthViewModel.Message.GoogleNoCredential ->
+                context.getString(R.string.velnox_auth_no_credential)
+            AuthViewModel.Message.GoogleProviderUnavailable ->
+                context.getString(R.string.velnox_auth_provider_unavailable)
+            AuthViewModel.Message.GoogleTokenUnusable ->
+                context.getString(R.string.velnox_auth_token_unusable)
             is AuthViewModel.Message.Failure ->
                 current.error.serverMessage ?: context.getString(R.string.velnox_state_error_body)
         }
