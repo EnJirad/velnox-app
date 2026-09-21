@@ -22,10 +22,23 @@ android {
         resourceConfigurations += listOf("th", "en")
     }
 
+    // See VelShop's script: the debug key is committed so the (package, SHA-1) pair
+    // Google needs for Credential Manager does not change between builds.
+    signingConfigs {
+        create("velnoxDebug") {
+            storeFile = rootProject.file("signing/velnox-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeType = "JKS"
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            signingConfig = signingConfigs.getByName("velnoxDebug")
         }
         release {
             isMinifyEnabled = true
@@ -34,8 +47,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // No signing config is committed: CI produces unsigned release APKs and
-            // the owner signs them. A checked-in keystore would be a leaked secret.
+            // Unsigned on purpose, and deliberately *not* the committed debug key: a
+            // distribution build is signed by the owner with their release key.
         }
     }
 

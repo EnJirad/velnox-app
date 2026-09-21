@@ -128,6 +128,22 @@ function readFileIfPresent(path: string): string {
 }
 
 /**
+ * Whether a path holds a JKS keystore.
+ *
+ * A JKS file begins with the magic `0xFEEDFEED`, so the file can be identified without
+ * decoding it and without putting any of it — or any password — into a log. An absent
+ * file is `false`, which is the failure this exists to catch.
+ */
+function isJksKeystore(path: string): boolean {
+  try {
+    const bytes = readFileSync(join(ROOT, path));
+    return bytes.length > 4 && bytes.readUInt32BE(0) === 0xfeedfeed;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The web client id the build will actually compile in.
  *
  * CI passes `-Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID"`, so a
@@ -257,16 +273,54 @@ function collectViolations(): string[] {
     violations,
   );
 
-  // A CI debug APK is signed by whatever key the runner happened to generate. If that
-  // path is not pinned, the certificate — and therefore the SHA-1 an Android OAuth
-  // client must be registered against — changes on every run, and Google sign-in cannot
-  // work on a CI build at all.
-  expectMatch(
-    ".github/workflows/build-android.yml",
-    /ANDROID_USER_HOME=/,
-    "no longer pins ANDROID_USER_HOME, so the debug keystore would be provisioned to a path AGP does not resolve and each run would sign with a different key",
-    violations,
-  );
+  // ── The debug signing key must not move ─────────────────────────────────────
+  // Google authorises a Credential Manager sign-in request from the (package name,
+  // signing certificate SHA-1) pair, so a debug key that changes between builds makes a
+  // registered Android OAuth client permanently stale: the account chooser returns
+  // nothing and the user is told sign-in failed. That is exactly what shipped — two
+  // consecutive CI runs signed com.velnox.velshop.debug with 21:7C:CD:93… and then
+  // A5:59:21:6F… — and the cause was a workflow that generated a fresh key every run.
+  // A rotation, or a silent detach of the committed key from the build, is a real
+  // regression of the sign-in flow, so it fails here rather than in the chooser.
+  const debugKeystore = "signing/velnox-debug.keystore";
+  if (!isJksKeystore(debugKeystore)) {
+    violations.push(
+      `${debugKeystore} is missing or is not a JKS keystore, so the debug APKs would be ` +
+        "signed by a key the build machine generates, and no Android OAuth client could stay registered",
+    );
+  }
+
+  for (const app of ["velshop", "velseller", "velcenter"]) {
+    const modulePath = `app/${app}/build.gradle.kts`;
+    const source = stripComments(readFileIfPresent(modulePath));
+    if (!source.includes(`rootProject.file("${debugKeystore}")`)) {
+      violations.push(
+        `${modulePath}: the debug signing config no longer points at ${debugKeystore}, so this ` +
+          "app's certificate would diverge from the one registered with Google",
+      );
+    }
+    if (!/debug\s*\{[^}]*signingConfig\s*=/.test(source)) {
+      violations.push(
+        `${modulePath}: the debug build type no longer sets a signingConfig, so AGP would sign ` +
+          "with whichever debug keystore the machine happens to have",
+      );
+    }
+  }
+
+  const workflowSource = stripComments(readFileIfPresent(".github/workflows/build-android.yml"));
+  if (workflowSource.includes("keytool -genkeypair")) {
+    violations.push(
+      ".github/workflows/build-android.yml generates a signing key, so the debug certificate " +
+        "— and the SHA-1 an Android OAuth client must be registered against — would change on every run",
+    );
+  }
+  if (!workflowSource.includes("verify --print-certs")) {
+    violations.push(
+      ".github/workflows/build-android.yml no longer reads the certificate back out of the signed " +
+        "APKs, so the SHA-1 reported for Google registration could drift from the one the shipped " +
+        "APK is actually signed with",
+    );
+  }
 
   // The client id belongs in gradle.properties (the public checked-in default) or in
   // the VELNOX_GOOGLE_WEB_CLIENT_ID repository variable. A literal in the workflow is

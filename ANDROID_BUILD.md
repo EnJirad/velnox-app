@@ -83,55 +83,93 @@ that goes with it.
 
 ## Signing
 
-Release builds are produced **unsigned**. CI intentionally has no keystore: a keystore
-committed to a repository is a leaked secret, and a "signed" APK from CI would imply a
-trust it does not have. Sign the artefact with `apksigner` (or add a properly stored
-GitHub secret and a `signingConfigs` block) at distribution time.
+**Release builds are unsigned.** CI has no release keystore, and it should not have one: a
+release key is a real secret, and a "signed" APK produced by CI would imply a trust it does
+not have. Sign the artefact with `apksigner` and your own release key at distribution time.
+Once that key exists, register its SHA-1 against the three non-`.debug` package names
+(`ANDROID_AUTH.md`) — until then a release build cannot complete a Google sign-in either,
+because Google has no certificate to match it against.
 
-Debug builds use AGP's default debug signing config. That config does **not** simply read
-`$HOME/.android/debug.keystore`: AGP's `AndroidLocation` prefers `ANDROID_USER_HOME`, then
-`XDG_CONFIG_HOME` — which a GitHub runner sets to `/home/runner/.config`, so AGP looks in
-`/home/runner/.config/.android` — and only then `$HOME`. Measured with
-`:app:velshop:signingReport` under each combination; with `ANDROID_USER_HOME` set the store
-is `$ANDROID_USER_HOME/debug.keystore` and it wins over `XDG_CONFIG_HOME`. Writing a
-keystore to `$HOME/.android` on CI therefore has no effect at all.
+**Debug builds use a committed debug key**, `signing/velnox-debug.keystore`, declared in
+each app's `signingConfigs` and applied to the `debug` build type. Committing a keystore is
+deliberately the opposite of the rule above, so the distinction matters:
 
-CI sets `ANDROID_USER_HOME` itself and installs the key there, so there is exactly one
-candidate path. Set the `VELNOX_DEBUG_KEYSTORE_BASE64` secret (base64 of a JKS whose alias
-is `androiddebugkey` and whose store/key password is `android`, the credentials AGP's
-debug config expects) to pin the key; otherwise CI generates one, which means a new SHA-1
-on every run. Either way it then reports the SHA-1 of the keystore AGP resolved — read
-back with `keytool`, because AGP 8.7's `signingReport` prints the path but no fingerprints
-— and that is the value an Android OAuth client must be registered against
-(`ANDROID_AUTH.md`). The keystore is a real secret: it lives in a GitHub secret and is
-never printed, only its public certificate fingerprint is.
+* it is **not a secret** — the store and key password are the public constant `android`, the
+alias is `androiddebugkey`, and it is only ever used for `debug`;
+* it cannot sign a release build, so no distribution trust depends on it;
+* leaving the key to the build machine is precisely what breaks Google Sign-In. Google
+authorises a Credential Manager request from the **(package name, signing certificate
+SHA-1)** pair, so a key that changes per build produces a fingerprint that cannot stay
+registered. That was the shipped defect: consecutive CI runs signed
+`com.velnox.velshop.debug` with `21:7C:CD:93…` and then `A5:59:21:6F…`, and Google answered
+the account request with no credential at all — which the app can only report as "no usable
+account".
+
+It also removes a second trap: the fingerprint is now identical on a developer machine and
+on CI, so a locally built debug APK and the CI artefact work against the *same*
+registration and neither replaces the other on install.
+
+An operator who wants their own debug key can override the committed one with the
+`VELNOX_DEBUG_KEYSTORE_BASE64` secret — base64 of a JKS whose alias is `androiddebugkey`
+and whose store/key password is `android`. CI writes it over
+`signing/velnox-debug.keystore` before the build, so there is still exactly one keystore and
+one signing path. Only the *public certificate fingerprint* is ever printed; the keystore
+bytes and both passwords never are.
+
+`tools/verify-android-config.ts` keeps this honest: it asserts the keystore exists and is
+really a JKS, that every app points its `debug` signing config at it, and that the workflow
+neither generates a signing key nor stops reading the fingerprint back out of the signed
+APKs.
+
+For reference, if a keystore is ever placed where AGP looks by default, the location is not
+`$HOME/.android`. AGP's `AndroidLocation` prefers `ANDROID_USER_HOME`, then
+`XDG_CONFIG_HOME` — which a GitHub runner sets to `/home/runner/.config`, so AGP would look
+in `/home/runner/.config/.android` — and only then `$HOME`. A keystore written to
+`$HOME/.android` on CI is silently ignored. This is no longer load-bearing here, because the
+apps declare their signing config explicitly rather than relying on AGP's debug default.
 
 ## GitHub Actions
 
 `.github/workflows/build-android.yml` runs on push, pull request and manually, and does:
 
-1. checkout · 2. JDK 17 · 3. Android SDK · 4. Gradle · 5. Bun ·
-6. `bun tools/verify-android-config.ts` · 7. dependency restore ·
-8. provision the debug signing keystore · 9. report the debug signing SHA-1 an Android
-OAuth client must be registered against · 10. `testDebugUnitTest` · 11. `lintDebug` ·
-12. VelShop · 13. Velseller · 14. VelCenter ·
-15. verify the built `core:auth` `BuildConfig` carries a well-formed client id ·
-16. APK verification (existence **and** a minimum size) · 17. rename to
-`VelShop.apk` / `Velseller.apk` / `VelCenter.apk` · 18. `velnox-android-release.zip` ·
-19. upload artifact `velnox-android-release`.
+1. checkout · 2. JDK 17 · 3. Android SDK · 4. Gradle · 5. toolchain check · 6. Bun ·
+7. `bun tools/verify-android-config.ts` · 8. `chmod +x ./gradlew` and `./gradlew --version` ·
+9. dependency restore ·
+10. configure the debug signing key (the committed one, or the `VELNOX_DEBUG_KEYSTORE_BASE64`
+override), failing unless it is a readable JKS ·
+11. report the SHA-1 each Android OAuth client must be registered against ·
+12. `testDebugUnitTest` · 13. `lintDebug` · 14. VelShop · 15. Velseller · 16. VelCenter ·
+17. verify the built `core:auth` `BuildConfig` carries a well-formed client id ·
+18. verify and rename the APKs (existence **and** a minimum size) ·
+19. read the certificate back out of each signed APK and fail unless all three are signed by
+the key used in step 10 · 20. `velnox-android-release.zip` · 21. upload artifact
+`velnox-android-release`.
 
-Step 6 runs before the ~40-minute Gradle work on purpose: it catches the mistakes that are
-cheap to make and expensive to notice — two apps sharing an `applicationId` (one APK
-silently replaces the other on install), a broken version catalog, a backend secret name
-leaking into shipped source, and a Google sign-in configuration that is empty or malformed
-(see `ANDROID_AUTH.md`). Running it locally is the same command.
+Step numbers are not referenced below: the steps are named instead, so inserting a step in
+this file cannot silently invalidate a pointer.
 
-Step 15 exists because steps 6 and 15 test different things. Step 6 checks the
-configuration Gradle was *given*; step 15 checks what the compiler actually *produced*. A
-property can be read into a Gradle `extra` and still never reach a `buildConfigField`, and
-the failure mode is silent — the APK builds, installs and passes every test, then tells the
-user it cannot sign them in. Step 15 reads the generated `BuildConfig.java`, asserts the
-value is non-empty and well-formed, and never prints it.
+**Verify build configuration** runs before the ~40-minute Gradle work on purpose: it catches
+the mistakes that are cheap to make and expensive to notice — two apps sharing an
+`applicationId` (one APK silently replaces the other on install), a broken version catalog, a
+backend secret name leaking into shipped source, a Google sign-in configuration that is empty
+or malformed (see `ANDROID_AUTH.md`), and a debug signing key that is missing, is not a JKS,
+or is no longer wired into one of the apps. Running it locally is the same command.
+
+**Verify the build carries a Google client id** exists because it and the configuration guard
+test different things. The guard checks the configuration Gradle was *given*; this step checks
+what the compiler actually *produced*. A property can be read into a Gradle `extra` and still
+never reach a `buildConfigField`, and the failure mode is silent — the APK builds, installs and
+passes every test, then tells the user it cannot sign them in. This step reads the generated
+`BuildConfig.java`, asserts the value is non-empty and well-formed, and never prints it.
+
+**Verify the shipped APKs are signed by the expected certificate** answers the question the
+reporting step cannot answer on its own: *is the fingerprint we tell you to register actually
+the fingerprint of the APK in the artifact?* The reporting step reads a keystore; this one
+reads the three signed APKs with `apksigner verify --print-certs` and fails unless every one
+of them carries exactly that certificate — and unless all three carry the same one, since a
+single registration set has to cover all three apps. Without it a misconfigured
+`signingConfigs` would produce a log that is confidently wrong, and the operator would
+register a certificate the shipped APK does not have.
 
 ### Failure semantics
 

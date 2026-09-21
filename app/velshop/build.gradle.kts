@@ -22,10 +22,28 @@ android {
         resourceConfigurations += listOf("th", "en")
     }
 
+    // Committed *debug-only* signing key. Google authorises a Credential Manager
+    // sign-in request from the (package name, signing certificate SHA-1) pair, so
+    // leaving the key to whichever machine happens to build the APK changes the
+    // fingerprint on every GitHub run and invalidates any Android OAuth client
+    // registered against it. Not a secret: the password is the public constant
+    // `android`, and `release` is still unsigned. See ANDROID_BUILD.md § Signing.
+    signingConfigs {
+        create("velnoxDebug") {
+            storeFile = rootProject.file("signing/velnox-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeType = "JKS"
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
             isDebuggable = true
+            // Explicit, so the certificate is identical locally and on CI.
+            signingConfig = signingConfigs.getByName("velnoxDebug")
         }
         release {
             isMinifyEnabled = true
@@ -34,8 +52,8 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
-            // No signing config is committed: CI produces unsigned release APKs and
-            // the owner signs them. A checked-in keystore would be a leaked secret.
+            // Unsigned on purpose, and deliberately *not* the committed debug key: a
+            // distribution build is signed by the owner with their release key.
         }
     }
 

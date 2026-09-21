@@ -79,7 +79,8 @@ cannot sign anyone in cannot pass as a successful one.
 
 A web client id is only half of the story. Google authorises a native request from the
 **(package name, signing certificate SHA-1)** pair, so each app needs an *Android* OAuth
-client in the same Google Cloud project. Debug builds carry an `applicationIdSuffix`:
+client **in the same Google Cloud project as that web client id**. Debug builds carry an
+`applicationIdSuffix`, which changes the package name that is actually installed:
 
 | App | Debug package | Release package |
 |-----|---------------|-----------------|
@@ -87,37 +88,45 @@ client in the same Google Cloud project. Debug builds carry an `applicationIdSuf
 | Velseller | `com.velnox.velseller.debug` | `com.velnox.velseller` |
 | VelCenter | `com.velnox.velcenter.debug` | `com.velnox.velcenter` |
 
-Read the fingerprint instead of guessing it:
+The debug certificate is committed at `signing/velnox-debug.keystore` and used by every
+debug build, on CI and on a developer machine alike, so the fingerprint does not move and the
+registration below is a **one-time** action. (`ANDROID_BUILD.md` § Signing explains why a
+*debug* key is committed while a release key must never be.) Read it from the artefact rather
+than from memory:
 
 ```bash
-./gradlew :app:velshop:signingReport :app:velseller:signingReport :app:velcenter:signingReport
+./gradlew :app:velshop:assembleDebug
+"${ANDROID_HOME}/build-tools/35.0.0/apksigner" verify --print-certs \
+  app/velshop/build/outputs/apk/debug/velshop-debug.apk
 ```
 
-The CI fingerprint is the one that matters for a CI-built APK, and it is **not** the
-developer machine's. A runner starts with no debug keystore and creates one, so an
-unpinned build produces a new SHA-1 on every run and the Google registration goes stale
-immediately. Pin it once:
+The three clients to create in the Velnox Google Cloud project — one per app, because the
+package name differs even though all three share the committed key:
 
-```bash
-keytool -genkeypair -keystore velnox-debug.keystore \
-  -alias androiddebugkey -storepass android -keypass android \
-  -keyalg RSA -keysize 2048 -validity 10000 \
-  -dname "CN=Android Debug,O=Android,C=US"
+| Package name | SHA-1 certificate fingerprint |
+|---|---|
+| `com.velnox.velshop.debug` | `13:83:2C:F0:C2:04:D5:FC:8E:CF:AE:52:BD:4D:E9:8C:3C:2A:76:8C` |
+| `com.velnox.velseller.debug` | `13:83:2C:F0:C2:04:D5:FC:8E:CF:AE:52:BD:4D:E9:8C:3C:2A:76:8C` |
+| `com.velnox.velcenter.debug` | `13:83:2C:F0:C2:04:D5:FC:8E:CF:AE:52:BD:4D:E9:8C:3C:2A:76:8C` |
 
-base64 -w0 velnox-debug.keystore   # add the output as the VELNOX_DEBUG_KEYSTORE_BASE64 secret
+and the matching SHA-256, should the console ask for it:
+
+```
+B7:2C:6E:FF:9E:BB:E6:ED:56:8B:5D:9F:8F:C6:A2:DC:58:98:ED:D0:7D:33:BF:CC:22:D1:25:71:03:D1:CC:0A
 ```
 
-That is the same shape AGP generates, so the debug signing configuration is unchanged —
-the key simply stops rotating. CI installs it at the location AGP actually resolves and
-reports the SHA-1 from the `Report debug signing certificate` step (`ANDROID_BUILD.md`
-§ Signing has the path, and why `$HOME/.android` is the wrong one to write to); when the
-secret is absent CI emits a warning naming it explicitly.
+There are **no release clients to register yet**: release builds are produced unsigned, so
+they have no certificate to declare. Add the three non-`.debug` entries once you sign a
+release build with a release key you control — that key must be a different one, and the
+debug key must never be used to sign anything distributed.
 
-Register **six** Android OAuth clients in the Velnox Google Cloud project — the three
-debug packages above and the three release ones — each carrying the SHA-1 CI printed.
-Without them Google issues no credential to the app at all, and Credential Manager
-reports that refusal as "no account on the device", which is why this step is not
-optional and why the message alone cannot tell you it is the cause.
+CI reports these same values (`Report the Google Sign-In registration values`) and then
+proves them against the artefacts (`Verify the shipped APKs are signed by the expected
+certificate`), so the table above can be re-derived from any workflow log instead of being
+trusted. Without these clients Google issues no credential to the app at all, and Credential
+Manager reports that refusal exactly the way it reports a device with no account — which is
+why this step is not optional, and why the app's message names both possibilities rather
+than guessing one.
 
 ### The one backend addition required
 

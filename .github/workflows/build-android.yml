@@ -116,36 +116,29 @@ jobs:
             :core:ui:dependencies :core:data:dependencies \
             > /dev/null
 
-      # Pin the debug signing key before any Gradle work. Google matches an Android
-      # OAuth client on (package name, signing certificate SHA-1), and a runner that has
-      # no debug keystore generates one — a fresh key, so a new SHA-1 every run, and any
-      # fingerprint registered in Google Cloud stops matching on the next run. Supplying
-      # the keystore is what makes the fingerprint stable enough to register once.
+      # The debug signing key is committed (`signing/velnox-debug.keystore`) and wired in
+      # through each app's `signingConfigs`, or supplied as
+      # `VELNOX_DEBUG_KEYSTORE_BASE64`. Either way **one** key is used on every run, which
+      # is the whole point: Google authorises a Credential Manager request from the
+      # (package name, signing certificate SHA-1) pair, so a key that changes per run can
+      # never be registered and Google answers with no credential at all.
       #
-      # The location is not `$HOME/.android`, which is the trap here. AGP's
-      # AndroidLocation prefers ANDROID_USER_HOME, then XDG_CONFIG_HOME — a GitHub runner
-      # sets that to `/home/runner/.config` — and only then `$HOME`. Measured with
-      # `:app:velshop:signingReport` under each combination: with ANDROID_USER_HOME set
-      # the store is `$ANDROID_USER_HOME/debug.keystore` (no `.android` suffix), and it
-      # wins over XDG_CONFIG_HOME. Setting it here removes the guesswork entirely, so a
-      # keystore written to `$HOME/.android` — silently ignored by the build — cannot
-      # happen again.
+      # Nothing here generates a key. An earlier version of this workflow did, and it was
+      # the defect: two consecutive runs signed `com.velnox.velshop.debug` with
+      # 21:7C:CD:93… and then A5:59:21:6F…, so a fingerprint registered against one build
+      # stopped matching the next. This step now only asserts the key is readable, so the
+      # failure happens here instead of 40 minutes later inside Google's account chooser.
       # `secrets` is read in step-scoped `env` because the context is not available at
       # workflow level.
-      - name: Provision debug signing keystore
+      - name: Configure the debug signing key
         env:
           # Optional, operator-supplied debug signing key (base64 of a JKS). A real
-          # secret, and never printed.
+          # secret, and never printed — only its public certificate fingerprint is.
           VELNOX_DEBUG_KEYSTORE_BASE64: ${{ secrets.VELNOX_DEBUG_KEYSTORE_BASE64 }}
         run: |
           set -euo pipefail
+          keystore="signing/velnox-debug.keystore"
 
-          android_user_home="$RUNNER_TEMP/android-user-home"
-          mkdir -p "$android_user_home"
-          # Exported so every later Gradle step resolves the same, single keystore.
-          echo "ANDROID_USER_HOME=$android_user_home" >> "$GITHUB_ENV"
-
-          keystore="$android_user_home/debug.keystore"
           if [ -n "${VELNOX_DEBUG_KEYSTORE_BASE64:-}" ]; then
             printf '%s' "$VELNOX_DEBUG_KEYSTORE_BASE64" \
               | tr -d '\n\r ' \
@@ -153,47 +146,42 @@ jobs:
             test -s "$keystore"
             echo "Using the debug keystore supplied as VELNOX_DEBUG_KEYSTORE_BASE64"
           else
-            # Same shape AGP would generate (RSA 2048, 10000 days, the fixed debug
-            # alias and password), created up front so its fingerprint can be reported
-            # and registered. A per-run key is still a per-run fingerprint, hence the
-            # warning.
-            keytool -genkeypair -keystore "$keystore" \
-              -alias androiddebugkey -storepass android -keypass android \
-              -keyalg RSA -keysize 2048 -validity 10000 \
-              -dname "CN=Android Debug,O=Android,C=US"
-            echo "::warning title=Unstable debug certificate::no VELNOX_DEBUG_KEYSTORE_BASE64 was supplied, so this run generated a new debug key and the SHA1 reported below will change on the next run. Register a stable key instead, or supply the secret."
+            test -s "$keystore"
+            echo "Using the committed debug keystore: $keystore"
           fi
 
-      # AGP 8.7's `signingReport` prints the keystore path but not the fingerprints, so
-      # the certificate is read back with keytool. The path comes from Gradle rather than
-      # from this file: that is what ties the printed fingerprint to the key the APKs are
-      # actually signed with, instead of to a path this workflow merely hoped for.
-      - name: Report debug signing certificate
+          # Without a readable key AGP falls back to a machine-generated one and every
+          # APK becomes unregisterable, so verify it is the JKS the apps expect.
+          keytool -list -keystore "$keystore" -storepass android -alias androiddebugkey > /dev/null \
+            || { echo "::error title=Unreadable debug keystore::$keystore is not a JKS holding alias androiddebugkey"; exit 1; }
+
+      # Read the fingerprint before the long Gradle work, so it is in the log early. The
+      # exact APK-to-fingerprint proof runs after the APKs exist (see "Verify the shipped
+      # APKs are signed by the expected certificate").
+      #
+      # A certificate fingerprint is public by design — it is the value handed to Google,
+      # not a credential — and the keystore's password is AGP's public debug constant, so
+      # neither is a secret. The keystore *bytes* are never printed.
+      - name: Report the Google Sign-In registration values
         run: |
           set -euo pipefail
+          keystore="signing/velnox-debug.keystore"
 
-          ./gradlew --no-daemon --console=plain \
-            -Pvelnox.api.baseUrl="$VELNOX_API_BASE_URL" \
-            -Pvelnox.google.webClientId="$VELNOX_GOOGLE_WEB_CLIENT_ID" \
-            :app:velshop:signingReport > "$RUNNER_TEMP/signing-report.txt"
-
-          stores=$(grep -E '^Store:' "$RUNNER_TEMP/signing-report.txt" \
-            | awk '{print $2}' | grep -v '^null$' | sort -u)
-          if [ -z "$stores" ]; then
-            echo "::error title=No debug keystore::signingReport resolved no keystore, so the debug APKs would be signed by an unregistered key"
+          sha1=$(keytool -list -v -keystore "$keystore" -storepass android -alias androiddebugkey \
+            | awk -F': ' '/SHA1:/ {print $2}')
+          if [ -z "$sha1" ]; then
+            echo "::error title=Unreadable debug keystore::could not read a SHA1 from $keystore"
             exit 1
           fi
 
-          echo "An Android OAuth client must exist in the Velnox Google Cloud project for"
-          echo "each package below, carrying the SHA1 printed for it."
-          for store in $stores; do
+          echo "Android OAuth clients required in the Velnox Google Cloud project — the same"
+          echo "project as the OAuth *web* client id used as the Credential Manager"
+          echo "serverClientId, because Google matches the calling app on package + SHA-1:"
+          echo
+          for pkg in com.velnox.velshop.debug com.velnox.velseller.debug com.velnox.velcenter.debug; do
+            echo "  package name : $pkg"
+            echo "  SHA-1        : $sha1"
             echo
-            echo "== debug signing certificate: $store =="
-            # A certificate fingerprint is public by design — it is the value registered
-            # with Google, not a credential. Only the fingerprint is printed; the store
-            # password is AGP's fixed debug password and is never echoed.
-            keytool -list -v -keystore "$store" -storepass android -alias androiddebugkey \
-              | grep -E 'Alias name:|Owner:|Valid from:|SHA1:|SHA256:'
           done
 
       - name: Run unit tests
@@ -302,6 +290,52 @@ jobs:
             echo "::error title=Wrong APK count::expected 3 APKs, found $count"
             exit 1
           fi
+
+      # The fingerprint reported earlier has to be the fingerprint of the artefact the
+      # operator installs — not of a keystore this workflow merely believed in. Reading it
+      # back out of the signed APKs is what closes that gap, and it is also what proves the
+      # answer to "is the reported SHA-1 the one the APK is signed with?". These are the
+      # same files that go into the zip.
+      - name: Verify the shipped APKs are signed by the expected certificate
+        run: |
+          set -euo pipefail
+
+          keystore="signing/velnox-debug.keystore"
+          expected=$(keytool -list -v -keystore "$keystore" -storepass android -alias androiddebugkey \
+            | awk -F': ' '/SHA1:/ {print $2}' | tr 'A-F' 'a-f')
+
+          build_tools=$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)
+          apksigner="$ANDROID_HOME/build-tools/$build_tools/apksigner"
+          if [ ! -x "$apksigner" ]; then
+            echo "::error title=No apksigner::apksigner was not found under $ANDROID_HOME/build-tools"
+            exit 1
+          fi
+
+          first=""
+          for apk in VelShop Velseller VelCenter; do
+            actual=$("$apksigner" verify --print-certs "release/$apk.apk" \
+              | awk -F': ' '/^Signer #1 certificate SHA-1 digest/ {print $2}' | tr 'A-F' 'a-f')
+            if [ -z "$actual" ]; then
+              echo "::error title=Unsigned APK::$apk.apk carries no signer certificate"
+              exit 1
+            fi
+            if [ "$actual" != "$expected" ]; then
+              echo "::error title=Signing key mismatch::$apk.apk is signed by $actual but $keystore holds $expected, so a Google OAuth client registered against one would not cover the other"
+              exit 1
+            fi
+            if [ -n "$first" ] && [ "$actual" != "$first" ]; then
+              echo "::error title=Inconsistent signing::$apk.apk and the APK checked before it are signed by different certificates, so one Google registration set cannot cover all three apps"
+              exit 1
+            fi
+            first="$actual"
+            echo "OK  $apk.apk  signed by SHA-1 $actual"
+          done
+
+          echo
+          echo "Register these Android OAuth clients (package name + SHA-1):"
+          for pkg in com.velnox.velshop.debug com.velnox.velseller.debug com.velnox.velcenter.debug; do
+            echo "  $pkg  $expected"
+          done
 
       - name: Create velnox-android-release.zip
         run: |
